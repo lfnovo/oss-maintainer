@@ -1,44 +1,62 @@
-# Gates — what needs a human, what doesn't
+# Gates — what needs a human, what does not
 
-The contract that made v1.11.0 safe. When in doubt, ask — a blocked action is
-feedback, not an obstacle to route around.
+When in doubt, ask. A blocked action is feedback, not an obstacle to route around.
 
-## You may do autonomously (once the release run is underway)
+## Autonomous, once the run is underway
 
-- Run any test, build, probe or analysis; start/stop local dev services
-- Create branches, commits, and open PRs
-- Spawn subagents (smoke-e2e, investigation, fixes)
-- Build/pull Docker images locally; run the release-test harness and RC stack
-- Dispatch the *Build and Release* CI workflow with `push_latest=false`
-  (version tags only — this is the agreed pre-verification push)
+- Run any test, build, probe or analysis; start and stop the local services the runbook
+  declares.
+- Create branches and commits; open PRs that follow the repository's conventions.
+- Delegate to subagents where the harness supports them: the smoke journey, investigations,
+  focused fixes, the changelog audit.
+- Build the artifact locally and run its gate against it.
+- Watch CI and the repository's reviewers.
+- Write the run record, reports and evidence under `.maintainer/state/`.
 
-## Requires explicit, in-session authorization from the owner
+## Requires an explicit answer in this session
 
 | Action | Why |
 |---|---|
-| Merging PRs you authored | two-party review; ask once per session ("merge when clean?") and honor the answer |
-| Publishing the GitHub release | public, triggers `v1-latest` — the point of no return |
-| Anything that pushes `v1-latest` | users receive it immediately |
-| Creating GitHub issues | external artifacts the owner may not want |
-| Mass-labeling issues (`released`) | bulk modification of shared state |
-| Touching the owner's dev data | only ever work on **copies** (export/import); never mount or mutate originals |
+| Merging PRs you authored | two-party review; ask once per session when `merge_own_prs = "ask-once-per-session"` and honour the answer |
+| Approving the release notes and announcements | public text |
+| The distribution trigger (phase 10) | the point of no return; for a tag-push pipeline, the tag push itself |
+| Anything that promotes a rolling channel (`latest`) | users receive it immediately |
+| Creating issues | external artifacts the owner may not want |
+| Mass-labeling issues | bulk modification of shared state |
+| Paid or manual bucket C runs (real credentials, real providers) | cost and access |
+| Touching the owner's data | only ever on copies; never mount or mutate originals |
+| Lint, type or cleanup work beyond the release diff | a separate task with its own PR |
+| Changing profile policies during a run | the run's authorizations were given under the current profile |
 
 ## Never
 
-- Push directly to main
-- Publish a prerelease/release to work around a blocked step
-- Mark a phase complete with failing checks ("GO with known issues is worse
-  than a NO-GO that catches problems before users do")
+- Push to the default branch.
+- Publish, push a tag or dispatch a publishing workflow to work around a blocked step.
+- Mark a phase complete with a failing or `not-run` mandatory check. GO with known issues is
+  worse than a NO-GO that catches problems before users do.
+- Reuse or overwrite a published version; bump and re-cut.
+- Hand-craft a tag that differs from the version files.
+- Skip the artifact gate because the tests passed: source tests do not prove the shipped
+  artifact works.
+- Accept a local overlay that changes a gate.
+
+## Authorization scope
+
+An authorization names the actions it covers, the candidate it applies to (commit, digests,
+approved text) and the conditions that end it: a new commit on the candidate, a rebuilt
+artifact, a changed profile policy. When any of those happens, the affected checks return to
+`not-run` and the authorization is asked again. "Merge when clean", given once per session,
+covers PRs opened during the run; it does not cover the distribution trigger.
 
 ## Re-test policy after each fix merge
 
-- Cheap suite (pytest + lint + frontend tests/build): **always**
-- smoke-e2e / image gate: only if the fix touches what they cover
-- Owner's manual verification: only if the fix touches what they verified
-- The final image gate (Phase 5.3) always runs on the exact release artifact
+- Cheap suite (validator and the other declared commands): always.
+- Artifact gate and smoke journey: when the fix touches what they cover.
+- The owner's manual checks: only for what the fix touched.
+- The final artifact gate always runs on the exact candidate that will be distributed.
 
-## GO/NO-GO
+## GO / NO-GO
 
-A release is GO when: bucket A fully green · image gate green (fresh +
-upgrade) · bucket C signed off by the owner · no open release-regression
-findings · Dependabot highs resolved or explicitly accepted.
+A release is GO when every mandatory check is `passed`, bucket C is signed off, no release
+regression is open, security alerts are resolved or explicitly accepted, and the candidate
+has not changed since the checks ran. Every other state is NO-GO with a stated reason.

@@ -1,66 +1,66 @@
-# Test Matrix Template — change → risk → bucket
+# Test matrix template — change → risk → bucket
 
-Instantiate against the real release diff. The unit of planning is the
-**risk**, not the feature: for each change ask *what can this break, and for
-whom?* Security hardening gets the inverse question too: *does the protection
-break legitimate use?* (v1.11.0 examples: SSRF guard vs. self-hosted Ollama on
-localhost; body-size cap vs. big uploads; Host validation vs. reverse proxies).
+Instantiate against the real release diff, starting from the repository's own matrix in
+`.maintainer/release/test-matrix.md`. The unit of planning is the **risk**, not the feature:
+for each change ask *what can this break, and for whom?* Every project has an inverse
+question too, and the profile's matrix names it: for security hardening, *does the protection
+break legitimate use?*; for a provider abstraction, *does it hold interface parity?*; for a
+content pipeline, *does it preserve uniformity across input paths?*
 
-## Bucket A — automated now (run all of it)
+A change to shared machinery (a base class, routing, configuration loading, a build script)
+widens the sweep: one baseline check per consumer of that machinery, not only the feature that
+motivated the change.
 
-Checklist design rule (v1.12.0 retro): before putting an error-path item on
-the bucket-C checklist ("X unconfigured should show an error"), verify in the
-provisioning code that it IS an error — transformation and tools defaults
-deliberately fall back to the chat default (`open_notebook/ai/models.py`).
+## Bucket A — automated now, run all of it
 
-| Check | Command / tool |
+| Check | Source |
 |---|---|
-| Backend suite | `uv run pytest tests/` |
-| Lint & types | `ruff check .` · `uv run python -m mypy .` (both are required CI gates; mypy runs at 0 errors — `uv sync --extra dev` first if mypy is missing locally) |
-| Frontend | `npm run lint` · `npm run test` · `npm run build` (run `npm ci` first if deps changed) |
-| Full happy path | `smoke-e2e` skill on the local dev stack (API + Playwright UI) |
-| Dependency audit | Dependabot alerts + `npm audit` |
-| Targeted probes | see below — pick per matrix |
+| The canonical validator and every other `[commands.*]` | profile |
+| The archetype gate | archetype reference |
+| The smoke journey, when the repository has one | `smoke-e2e` skill |
+| Dependency audit | security alerts, `npm audit`, `pip-audit` or the project's equivalent |
+| Targeted probes for this release's risks | below, plus the repository's probe library |
 
-### Probe library (extend per release)
+Checklist design rule: before writing an error-path item ("X unconfigured should show an
+error"), verify in the code that it *is* an error; defaults and fallbacks often make it a
+non-event.
 
-Regression-of-legitimate-use probes proven in v1.11.0 — adapt endpoints/values:
+### Probe classes
 
-- Upload just under / just over the body cap → accepted / 413
-- Source ingestion of a `localhost` URL → ACCEPTED (self-hosted is legitimate);
-  link-local/metadata URL → rejected with a clear 4xx
-- Frontend `/config` with clean vs. malformed `Host` → sane URL / fallback, never 5xx
-- SSE endpoints stream progressively (first byte ≪ total time via `curl -N -w`)
-- CORS preflight with and without `CORS_ORIGINS` set
-- Every enum/allowlisted query param exercised with **each** valid value +
-  one invalid (v1.11.0: `sort_by=title` 500'd while all siblings passed —
-  test the whole surface, not one sample)
-- Oversized array inputs and unknown-provider payloads → clean 422, not 500
-- Anything an LLM or UI writes through: verify the full path in a real
-  browser, not just the API (mirror-bug lesson: frontend dropped the field
-  AND the API ignored null — only end-to-end caught it)
+Adapt the endpoints and values to the repository; the classes recur:
 
-## Bucket B — automatable with investment (decide with the owner)
+- Limits: an input just under and just over each cap → accepted / clean rejection.
+- Allowlisted parameters: every valid value plus one invalid, for the whole surface, not one
+  sample (one sibling value failing while the others pass is a classic).
+- Error paths return a clean 4xx, never a 500, for oversized arrays, unknown providers,
+  malformed headers.
+- Streaming endpoints stream progressively (first byte far earlier than the total time).
+- Self-hosted legitimacy: local and private addresses keep working where the product promises
+  them, while link-local and metadata addresses are rejected.
+- Anything an LLM or a UI writes through: verify the full path end to end, in a real client,
+  not only at the API (a field dropped on one side and ignored on the other is only visible
+  end to end).
+- Deprecations: confirm the deprecated path still *works*, not only that the warning fires.
 
-Standing candidates; the image gate graduated from here to `make release-test`:
+## Bucket B — automatable with investment
 
-- New end-to-end scenarios for this release's features
-- CI-ification of any probe that proved valuable twice
-- Anything the owner keeps having to verify by hand
+Standing candidates: end-to-end scenarios for this release's features, CI-ification of any
+probe that proved valuable twice, anything the owner keeps verifying by hand.
 
-Decision rule: build it if it compounds for future releases and costs < the
-manual verification it replaces; otherwise verify manually this once and note
-it here for next time.
+Decision rule, applied with the owner per item: build it now when it compounds for future
+releases and costs less than the manual verification it replaces; otherwise verify manually
+this once and note it in the repository's matrix for next time. Bucket B never feeds a gate
+directly: what gets built joins A, what does not joins C.
 
-## Bucket C — the release owner (start EARLY, in parallel)
+## Bucket C — the release owner, started early
 
-- Provider connection tests with **real credentials** (prioritize providers
-  whose code changed); one discover-models; one chat per main provider
-- One podcast with real TTS on a dense notebook
-- Visual/UX tour (~10 min) of every UI change in the release, plus dark mode
-  sampling
-- Phase 6: the pushed image via `make release-stack`
+- Real credentials: connection tests for the providers whose code changed, one baseline per
+  modality that did not.
+- One end-to-end run of the expensive path (a paid API, a generated artifact, a real device).
+- A visual or usability tour of every user-facing change.
+- The published artifact, after phase 10, on a fresh environment.
 
-Deliver this as a concrete checklist with expected outcomes, tailored to what
-the release actually touched and to the credentials the owner actually has
-(`GET /api/credentials` tells you).
+Deliver this as a concrete checklist with expected outcomes, tailored to what the release
+touched and to the credentials the owner actually has. A provider or path with no
+credentials is recorded as **unverified this release**, never implied as covered. Start it
+in parallel with bucket A so the owner is never the bottleneck at the end.

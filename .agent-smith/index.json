@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T19:21:51Z",
+  "lastUpdated": "2026-09-05T19:30:19Z",
   "components": [
     {
       "id": "skill:init",
@@ -57,7 +57,39 @@
       "name": "release",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/release/SKILL.md",
-      "description": "Orchestrate an Open Notebook release — changelog audit, risk-based A/B/C test matrix, Docker image gate (fresh + upgrade), fix loop via PRs, cut, publication with credits, retro. Use when preparing, testing, cutting or publishing a release."
+      "description": "Orchestrate a release of the current repository behind human gates, from changelog audit and version decision through a risk-based test matrix, the artifact gate, the fix loop, notes and credits, an explicit GO before the first action that can start distribution, verification from the registry, announcements, cleanup and retro. Use when preparing, testing, cutting or publishing a release."
+    },
+    {
+      "id": "policy:release:user-invoked",
+      "type": "policy",
+      "name": "release user-invoked only",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/release/SKILL.md",
+      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
+    },
+    {
+      "id": "script:run-record",
+      "type": "script",
+      "name": "run_record",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/release/scripts/run_record.py",
+      "description": "Bundled with the release skill."
+    },
+    {
+      "id": "skill:review-pr",
+      "type": "skill",
+      "name": "review-pr",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/review-pr/SKILL.md",
+      "description": "Review a pull request as the maintainer, judging the diff against the project's own rules (agent docs, architecture, contribution guides) with existing AI reviews treated as hypotheses to verify, and report P0/P1/P2 findings for the maintainer to decide what to post. Use when the maintainer asks to review a PR or the open PR queue."
+    },
+    {
+      "id": "policy:review-pr:user-invoked",
+      "type": "policy",
+      "name": "review-pr user-invoked only",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/review-pr/SKILL.md",
+      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
     },
     {
       "id": "skill:smoke-e2e",
@@ -66,6 +98,22 @@
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md",
       "description": "Run Open Notebook's full end-to-end happy path (notebook → sources → chat → ask → transformation → podcast → search → cleanup) against a running dev stack via the API, then verify the UI with Playwright, and report GO / NO-GO. Use when smoke-testing a local stack, gating a release, or when asked to run the smoke test."
+    },
+    {
+      "id": "skill:triage",
+      "type": "skill",
+      "name": "triage",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/triage/SKILL.md",
+      "description": "Classify open GitHub issues into the project's triage outcomes (by default close, needs-design or ready) after checking their premises against the code, one confirmed verdict at a time, so design and development can pick them up. Use when the maintainer asks to triage issues, a specific issue, or the intake queue."
+    },
+    {
+      "id": "policy:triage:user-invoked",
+      "type": "policy",
+      "name": "triage user-invoked only",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/triage/SKILL.md",
+      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
     },
     {
       "id": "agent:smoke-e2e",
@@ -150,6 +198,54 @@
       "path": "plugins/oss-maintainer/skills/release/SKILL.md"
     },
     {
+      "componentId": "policy:release:user-invoked",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/release/SKILL.md"
+    },
+    {
+      "componentId": "policy:release:user-invoked",
+      "harness": "codex",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/release/agents/openai.yaml"
+    },
+    {
+      "componentId": "script:run-record",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/release/scripts/run_record.py"
+    },
+    {
+      "componentId": "script:run-record",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/release/scripts/run_record.py"
+    },
+    {
+      "componentId": "skill:review-pr",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/review-pr/SKILL.md"
+    },
+    {
+      "componentId": "skill:review-pr",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/review-pr/SKILL.md"
+    },
+    {
+      "componentId": "policy:review-pr:user-invoked",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/review-pr/SKILL.md"
+    },
+    {
+      "componentId": "policy:review-pr:user-invoked",
+      "harness": "codex",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/review-pr/agents/openai.yaml"
+    },
+    {
       "componentId": "skill:smoke-e2e",
       "harness": "claude",
       "status": "shared",
@@ -160,6 +256,30 @@
       "harness": "codex",
       "status": "shared",
       "path": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md"
+    },
+    {
+      "componentId": "skill:triage",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/triage/SKILL.md"
+    },
+    {
+      "componentId": "skill:triage",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/triage/SKILL.md"
+    },
+    {
+      "componentId": "policy:triage:user-invoked",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/triage/SKILL.md"
+    },
+    {
+      "componentId": "policy:triage:user-invoked",
+      "harness": "codex",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/triage/agents/openai.yaml"
     },
     {
       "componentId": "agent:smoke-e2e",
