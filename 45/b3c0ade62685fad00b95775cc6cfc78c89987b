@@ -1,0 +1,47 @@
+.agent-smith/index.json
+  s_9d82c81f34def2::t_a4fb466b9aae56 1-78
+.agents/plugins/marketplace.json
+  s_9d82c81f34def2::t_fe9ad90dccb74f 1-19
+.claude-plugin/marketplace.json
+  s_9d82c81f34def2::t_4f92442ddd7736 1-22
+.gitignore
+  s_9d82c81f34def2::t_83dd557ab375af 1-2
+README.md
+  s_9d82c81f34def2::t_e3759627f5cbd8 1-65
+plugins/on-maintainer/.claude-plugin/plugin.json
+  s_9d82c81f34def2::t_4a526e6e7d7f6a 1-10
+plugins/on-maintainer/.codex-plugin/plugin.json
+  s_9d82c81f34def2::t_5ef2219520b469 1-6
+plugins/on-maintainer/agents/smoke-e2e.md
+  s_9d82c81f34def2::t_e0efd310d7b28d 1-30
+plugins/on-maintainer/skills/process-discussions/SKILL.md
+  s_9d82c81f34def2::t_1a624f06eccd0c 1-226
+plugins/on-maintainer/skills/release/SKILL.md
+  s_9d82c81f34def2::t_3032fb6e379c0d 1-120
+plugins/on-maintainer/skills/release/references/comms-templates.md
+  s_9d82c81f34def2::t_8110643ec36385 1-62
+plugins/on-maintainer/skills/release/references/gates.md
+  s_9d82c81f34def2::t_2f569f60bf2bcf 1-44
+plugins/on-maintainer/skills/release/references/runbook.md
+  s_9d82c81f34def2::t_f8e07a07a9b50f 1-112
+plugins/on-maintainer/skills/release/references/test-matrix.md
+  s_9d82c81f34def2::t_101afd6ae9bc9b 1-66
+plugins/on-maintainer/skills/smoke-e2e/SKILL.md
+  s_9d82c81f34def2::t_de95b8d80741f3 1-489
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "45b3c0ade62685fad00b95775cc6cfc78c89987b",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
