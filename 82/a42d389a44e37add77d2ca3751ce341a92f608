@@ -1,0 +1,48 @@
+plugins/oss-maintainer/skills/triage/SKILL.md
+  s_9d82c81f34def2::t_a643281d81f6a2 94-95
+plugins/oss-maintainer/skills/review-pr/SKILL.md
+  s_9d82c81f34def2::t_a643281d81f6a2 107-108
+tests/test_validate_profile.py
+  s_9d82c81f34def2::t_07f575fd6151e9 79
+plugins/oss-maintainer/evals/parity/checklist.md
+  s_9d82c81f34def2::t_49aad046b97d09 10-19,27
+CHANGELOG.md
+  s_9d82c81f34def2::t_49aad046b97d09 15-16
+plugins/oss-maintainer/evals/fixtures/overlay-override/.gitignore
+  s_9d82c81f34def2::t_07f575fd6151e9 1-2
+plugins/oss-maintainer/skills/init/scripts/validate_profile.py
+  s_9d82c81f34def2::t_07f575fd6151e9 182-188
+README.md
+  s_9d82c81f34def2::t_49aad046b97d09 21,78-80
+  s_9d82c81f34def2::t_43156c179f7409 81
+plugins/oss-maintainer/skills/plugin-feedback/agents/openai.yaml
+  s_9d82c81f34def2::t_49aad046b97d09 1-4
+plugins/oss-maintainer/skills/release/SKILL.md
+  s_9d82c81f34def2::t_a643281d81f6a2 134-135
+plugins/oss-maintainer/skills/plugin-feedback/SKILL.md
+  s_9d82c81f34def2::t_49aad046b97d09 1-85
+VISION.md
+  s_9d82c81f34def2::t_49aad046b97d09 355-356,360
+plugins/oss-maintainer/skills/init/SKILL.md
+  s_9d82c81f34def2::t_a643281d81f6a2 103-106
+plugins/oss-maintainer/skills/process-discussions/SKILL.md
+  s_9d82c81f34def2::t_a643281d81f6a2 106-107
+uv.lock
+  s_9d82c81f34def2::t_ecebf11a4f1e9a 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "82a42d389a44e37add77d2ca3751ce341a92f608",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
