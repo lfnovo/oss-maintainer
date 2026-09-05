@@ -1,0 +1,65 @@
+tests/conftest.py
+  s_9d82c81f34def2::t_d27d182a925247 1-26
+tests/test_repo_layout.py
+  s_9d82c81f34def2::t_d27d182a925247 1-62
+plugins/oss-maintainer/.codex-plugin/plugin.json
+  s_9d82c81f34def2::t_6b066dd55a8adc 1-6
+.gitignore
+  s_9d82c81f34def2::t_6b066dd55a8adc 3-5
+scripts/rebuild_index.py
+  s_9d82c81f34def2::t_f5375f0e1ae595 1-199
+research/oss-maintainer-landscape.md
+  s_2cedc8165303ae::t_ee18177949ce7d 658,747,772,829,841,877,1020
+  s_2cedc8165303ae::t_4c09a7c9c4666a 403-657,659-746,748-771,773-828,830-840,842-876,878-1019,1021-1025
+  s_2cedc8165303ae::t_86d1e9a199c2a0 1-402
+.agents/plugins/marketplace.json
+  s_9d82c81f34def2::t_6b066dd55a8adc 2-3,6,9
+CHANGELOG.md
+  s_9d82c81f34def2::t_6b066dd55a8adc 1-21
+scripts/bump.py
+  s_9d82c81f34def2::t_f5375f0e1ae595 1-71
+README.md
+  s_9d82c81f34def2::t_3616971abee7c7 1,3,5,7,9-13,15-20,22,29-30,36-37,40-46,54,57,59-62,67-71,73-79
+plugins/oss-maintainer/evals/README.md
+  s_9d82c81f34def2::t_6b066dd55a8adc 1-24
+.agent-smith/index.json
+  s_9d82c81f34def2::t_2a5535527c98a3 4-7,9,12,15,17-20,23,25-28,34-36,42-44,48-89,105-110,117-122
+.claude-plugin/marketplace.json
+  s_9d82c81f34def2::t_6b066dd55a8adc 2,7,11-13
+.github/workflows/ci.yml
+  s_9d82c81f34def2::t_d27d182a925247 1-53
+pyproject.toml
+  s_9d82c81f34def2::t_d27d182a925247 1-3
+plugins/oss-maintainer/.claude-plugin/plugin.json
+  s_9d82c81f34def2::t_6b066dd55a8adc 1-11
+VISION.md
+  s_9d82c81f34def2::t_5b2dc1e3f9ce60 25-26,32-33,137-139,141,143-144,146,149,151,154,156-157,159,161-163,165-175,178,191,255-258,260,263,269-271,273,311-312,352,358-359,361,403,432-433
+  s_9d82c81f34def2::t_087b85cb1aa7d9 1-2,5,7,13,15,17,20-24,27,29,31,35-39,46,49-53,55,57-59,66,69,71-73,75,77-79,81,85,95,97,99,106-107,109,111,117,119,126-128,131,133,135-136,158,160,176,179-190,192-197,200-201,203-205,207-209,211-214,227,230-234,236-237,239-240,244-251,253,259,261-262,274-278,281-284,287-290,292-293,295-300,302-306,309,317,319,321,323,325,332-344,346-349,353-357,360,370,377-385,388-390,392-394,396-402,405-411,417-423,426-428,430-431
+  s_9d82c81f34def2::t_ffa302c8fc0de7 3-4,6,8-12,14,16,18-19,28,30,34,40-45,47-48,54,56,60-65,67-68,70,74,76,80,82-84,86-94,96,98,100-105,108,110,112-116,118,120-125,129-130,132,134,140,142,145,147-148,150,152-153,155,164,177,198-199,202,206,210,215-226,228-229,235,238,241-243,252,254,264-268,272,279-280,285-286,291,294,301,307-308,310,313-316,318,320,322,324,326-331,345,350-351,362-369,371-376,386-387,391,395,404,412-416,424-425,429
+LICENSE
+  s_9d82c81f34def2::t_6b066dd55a8adc 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "7e56a419050f3588cbe7d233982ad2ad3d5fadb9",
+  "prompts": {},
+  "sessions": {
+    "s_2cedc8165303ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "945da2f8-9389-49e6-8af2-164ce4bef66d",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    },
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
