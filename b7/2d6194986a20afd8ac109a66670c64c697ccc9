@@ -1,0 +1,43 @@
+plugins/oss-maintainer/skills/smoke-e2e/references/journey-format.md
+  s_9d82c81f34def2::t_36ae192eacebd8 1-57
+plugins/oss-maintainer/skills/smoke-e2e/references/profile-contract.md
+  s_9d82c81f34def2::t_36ae192eacebd8 1-13
+plugins/oss-maintainer/agents/smoke-e2e.md
+  s_9d82c81f34def2::t_36ae192eacebd8 3-4,12-13,15-18,22-24,30
+plugins/oss-maintainer/skills/process-discussions/references/outcomes-preset.md
+  s_9d82c81f34def2::t_103e40762337d3 1-46
+plugins/oss-maintainer/skills/process-discussions/references/profile-contract.md
+  s_9d82c81f34def2::t_103e40762337d3 1-18
+plugins/oss-maintainer/skills/process-discussions/SKILL.md
+  s_9d82c81f34def2::t_1607b91da16663 3-5,8-110,114-126
+plugins/oss-maintainer/skills/process-discussions/agents/openai.yaml
+  s_9d82c81f34def2::t_103e40762337d3 1-6
+plugins/oss-maintainer/skills/smoke-e2e/SKILL.md
+  s_9d82c81f34def2::t_1c733dd317a712 3-4,7,9-12,14-15,17,19-25,27,29,31-33,35-36,38,40-43,45-46,48,50,52-53,55,57-61,63,65-66,68,70-73,75-76,80-86
+plugins/oss-maintainer/skills/smoke-e2e/references/report-template.md
+  s_9d82c81f34def2::t_36ae192eacebd8 1-40
+plugins/oss-maintainer/skills/process-discussions/references/graphql-recipes.md
+  s_9d82c81f34def2::t_103e40762337d3 1-67
+plugins/oss-maintainer/skills/process-discussions/references/reply-structure.md
+  s_9d82c81f34def2::t_103e40762337d3 1-29
+plugins/oss-maintainer/skills/process-discussions/references/decision-format.md
+  s_9d82c81f34def2::t_103e40762337d3 1-23
+.agent-smith/index.json
+  s_9d82c81f34def2::t_aeac0322093524 12,52-60,108,132,196-207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "b72d6194986a20afd8ac109a66670c64c697ccc9",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
