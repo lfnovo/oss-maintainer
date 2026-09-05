@@ -3,3 +3,4 @@
 __pycache__/
 .pytest_cache/
 plugins/*/evals/results/
+uv.lock
