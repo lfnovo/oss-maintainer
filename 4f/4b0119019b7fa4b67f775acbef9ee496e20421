@@ -1,0 +1,126 @@
+tests/test_run_record.py
+  s_e5e0529e87b9d3::t_772cab6882f61b 113-174
+plugins/oss-maintainer/skills/init/templates/release/test-matrix.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 19,22-26
+tests/test_pypi_gate.py
+  s_e5e0529e87b9d3::t_f7a02f97468913 35
+  s_e5e0529e87b9d3::t_a80d51a9352c78 1-34,36-81
+plugins/oss-maintainer/.codex-plugin/plugin.json
+  s_e5e0529e87b9d3::t_98e21b97a0c209 3
+plugins/oss-maintainer/skills/release/references/notes-and-credits.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 34-36
+plugins/oss-maintainer/skills/release/references/archetypes/pypi-library.md
+  s_e5e0529e87b9d3::t_fe05c976b74d67 34,43-47,49-62,97-102
+  s_e5e0529e87b9d3::t_5b42bc0e8f23a5 48
+plugins/oss-maintainer/skills/init/scripts/detect_repo.py
+  s_e5e0529e87b9d3::t_fabd64e8768b8e 123,130-133,142
+  s_e5e0529e87b9d3::t_0402bebfbddca3 120-122,124-129,134-141,143-148,153-154,160-163,214,230,232,236,242,246,262-275,294,298,304
+plugins/oss-maintainer/skills/process-discussions/scripts/read_discussions.py
+  s_e5e0529e87b9d3::t_0976b9e400d1e4 1-151
+plugins/oss-maintainer/skills/release/SKILL.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 52,55-59,85-86,112-113,125-128,140-141,149-151,161-163,186
+  s_e5e0529e87b9d3::t_98e21b97a0c209 120-122
+plugins/oss-maintainer/skills/init/references/profile-schema.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 23-26
+README.md
+  s_e5e0529e87b9d3::t_fe05c976b74d67 78-79,81-87
+  s_e5e0529e87b9d3::t_98e21b97a0c209 11
+  s_e5e0529e87b9d3::t_5b42bc0e8f23a5 80
+plugins/oss-maintainer/evals/README.md
+  s_e5e0529e87b9d3::t_5b42bc0e8f23a5 31-40
+tests/test_validate_profile.py
+  s_e5e0529e87b9d3::t_61b708ddad78cf 154-240
+  s_e5e0529e87b9d3::t_fabd64e8768b8e 241-271
+plugins/oss-maintainer/skills/release/references/gates.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 23,61-62,65-67
+plugins/oss-maintainer/skills/release/references/archetypes/app-docker.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 37-62
+plugins/oss-maintainer/skills/process-discussions/SKILL.md
+  s_e5e0529e87b9d3::t_0976b9e400d1e4 71-72
+plugins/oss-maintainer/skills/release/references/candidate-and-publication.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 1-49
+.agent-smith/index.json
+  s_e5e0529e87b9d3::t_98e21b97a0c209 12
+  s_e5e0529e87b9d3::t_8344909312ff98 70-77,236-247
+tests/test_detect_repo.py
+  s_e5e0529e87b9d3::t_fabd64e8768b8e 188-219
+  s_e5e0529e87b9d3::t_0402bebfbddca3 102-187
+plugins/oss-maintainer/skills/init/templates/profile.pypi-library.toml
+  s_e5e0529e87b9d3::t_fe05c976b74d67 36-38
+plugins/oss-maintainer/.claude-plugin/plugin.json
+  s_e5e0529e87b9d3::t_98e21b97a0c209 3,10-18
+plugins/oss-maintainer/evals/fixtures/pypi-library/.maintainer/profile.toml
+  s_e5e0529e87b9d3::t_fe05c976b74d67 21-22,24-30
+  s_e5e0529e87b9d3::t_5b42bc0e8f23a5 23
+plugins/oss-maintainer/skills/init/scripts/validate_profile.py
+  s_e5e0529e87b9d3::t_fabd64e8768b8e 234,276-278,280-281,294-300,305-308,326-329,364-365,381-386,503
+  s_e5e0529e87b9d3::t_5d1873786c34f9 96-100,108-112,127-149,152-155,162,164,167,173-176,178,189-220,232-233,237-238,246,260,267,279,283-287,289,302,310,322,337,342,357,359-363,368-370,379,387-389,404,444,450
+.claude-plugin/marketplace.json
+  s_e5e0529e87b9d3::t_98e21b97a0c209 14
+plugins/oss-maintainer/skills/process-discussions/references/graphql-recipes.md
+  s_e5e0529e87b9d3::t_0976b9e400d1e4 14-16,19-20,23-28,30-31,63,67-69
+plugins/oss-maintainer/skills/release/scripts/run_record.py
+  s_e5e0529e87b9d3::t_772cab6882f61b 12,23,100-101,147-149,155-167,170-171,175-192,194,201-206,300
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 143
+plugins/oss-maintainer/skills/release/references/run-record.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 17,20-21,41-45,51,56,74-79
+  s_e5e0529e87b9d3::t_c5473861864e47 73,83-89
+tests/test_discussions.py
+  s_e5e0529e87b9d3::t_8cdf3ca8ff27c0 1-103
+CHANGELOG.md
+  s_e5e0529e87b9d3::t_98e21b97a0c209 8-29
+plugins/oss-maintainer/skills/release/references/test-matrix.md
+  s_e5e0529e87b9d3::t_9d8a8bb1ce933b 55,61,67-75
+.agents/plugins/marketplace.json
+  s_e5e0529e87b9d3::t_98e21b97a0c209 16
+docs/profile-reference.md
+  s_e5e0529e87b9d3::t_62f95e7eb9f600 26-29
+plugins/oss-maintainer/evals/cases/release-docker-rc-authorization/graders/01-skill-fired.md
+  s_e5e0529e87b9d3::t_c7dd8d1ce96bdc 1-7
+plugins/oss-maintainer/evals/cases/release-docker-rc-authorization/graders/02-boundary.md
+  s_e5e0529e87b9d3::t_149ab9b03b5805 1-7
+plugins/oss-maintainer/evals/cases/release-docker-rc-authorization/graders/03-no-distribution.md
+  s_e5e0529e87b9d3::t_1e4e8e22e7a793 1-8
+plugins/oss-maintainer/evals/cases/release-docker-rc-authorization/prompt.md
+  s_e5e0529e87b9d3::t_0d73d84c18ad15 1-13
+plugins/oss-maintainer/evals/cases/release-docker-rc-authorization/scaffold.sh
+  s_e5e0529e87b9d3::t_daf2d2b669c1e4 1-11
+plugins/oss-maintainer/evals/cases/release-fresh-version-pre-go/graders/01-skill-fired.md
+  s_e5e0529e87b9d3::t_0d2cf2cf6275bc 1-7
+plugins/oss-maintainer/evals/cases/release-fresh-version-pre-go/graders/02-boundary.md
+  s_e5e0529e87b9d3::t_194d80d204d6a5 1-7
+plugins/oss-maintainer/evals/cases/release-fresh-version-pre-go/graders/03-no-distribution.md
+  s_e5e0529e87b9d3::t_90f92d2ecef46f 1-8
+plugins/oss-maintainer/evals/cases/release-fresh-version-pre-go/prompt.md
+  s_e5e0529e87b9d3::t_976c256e2a02dc 1-13
+plugins/oss-maintainer/evals/cases/release-fresh-version-pre-go/scaffold.sh
+  s_e5e0529e87b9d3::t_f3f9623bca84df 1-11
+plugins/oss-maintainer/evals/cases/release-merge-publish-trigger/graders/01-skill-fired.md
+  s_e5e0529e87b9d3::t_0bc1075d9186d1 1-7
+plugins/oss-maintainer/evals/cases/release-merge-publish-trigger/graders/02-boundary.md
+  s_e5e0529e87b9d3::t_cf139652198895 1-7
+plugins/oss-maintainer/evals/cases/release-merge-publish-trigger/graders/03-no-distribution.md
+  s_e5e0529e87b9d3::t_8064bb4cc2911c 1-8
+plugins/oss-maintainer/evals/cases/release-merge-publish-trigger/prompt.md
+  s_e5e0529e87b9d3::t_ec7195f972aaf8 1-13
+plugins/oss-maintainer/evals/cases/release-merge-publish-trigger/scaffold.sh
+  s_e5e0529e87b9d3::t_e9182ecec42883 1-17
+tests/test_release_ordering.py
+  s_e5e0529e87b9d3::t_0d82fe13450455 38-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4f4b0119019b7fa4b67f775acbef9ee496e20421",
+  "prompts": {},
+  "sessions": {
+    "s_e5e0529e87b9d3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0732d-b8d9-7123-b2d0-1a3f3334e3bc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
