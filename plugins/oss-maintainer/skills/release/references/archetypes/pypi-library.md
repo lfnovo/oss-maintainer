@@ -31,7 +31,7 @@ surface, from a clean environment, with no repository on the path:
 2. **Wheel content inspection**: list the wheel and confirm every non-Python asset the runtime
    needs is inside (templates, data files, prompts). Any new non-`.py` asset is a packaging
    risk until confirmed inside.
-3. **Clean-room install**: `uv run --isolated --no-project --with dist/<pkg>-*.whl python -c "import <module>"`.
+3. **Clean-room install**: use the recipe below, with the project's module name.
    A bare install without extras must import: optional dependencies stay guarded.
 4. **Surface smokes** per `[artifacts.pypi].surfaces`: `library` (import and one call),
    `cli` (`--help` plus one real invocation on a fixture), `mcp` (the server starts and
@@ -39,6 +39,26 @@ surface, from a clean environment, with no repository on the path:
 5. **Extras resolve**: each entry in `[artifacts.pypi].extras` installs against the published
    pins.
 6. `[artifacts.pypi].install_check` when set.
+
+The portable gate recipe below also appears in the README profile example. Replace
+`example_lib` with the import module, which may differ from the distribution name.
+
+```bash
+rm -rf dist && uv build &&
+wheel="$(python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
+(
+  check_dir="$(mktemp -d)" &&
+  trap 'rm -rf "$check_dir"' EXIT &&
+  cd "$check_dir" &&
+  uv run --isolated --no-project --with "$wheel" python -I -c 'import example_lib; print(example_lib.__file__)'
+)
+```
+
+`uv --isolated --no-project` isolates environment selection, not Python's import path.
+Changing directory and `python -I` remove checkout and inherited `PYTHONPATH` assistance.
+Inspect the printed module origin: it must belong to the installed environment, never the
+checkout. Apply the same isolation to CLI/MCP probes and runtime assets; editable installs
+or source-only templates do not count as artifact evidence.
 
 Identity: sha256 of the wheel and sdist. When the publish workflow rebuilds the package
 before uploading, the published files differ from the tested ones; phase 11 verifies the
@@ -74,7 +94,12 @@ intermediates next to fixtures.
 ## Post-publish verification (phase 11)
 
 ```bash
-uv run --isolated --no-project --with "<package>==<version>" python -c "import <module>; print('index install OK')"
+(
+  check_dir="$(mktemp -d)" &&
+  trap 'rm -rf "$check_dir"' EXIT &&
+  cd "$check_dir" &&
+  uv run --isolated --no-project --with "<package>==<version>" python -I -c "import <module>; print(<module>.__file__)"
+)
 ```
 
 Repeat the surface smokes against the index install, not the local build. Propagation can lag

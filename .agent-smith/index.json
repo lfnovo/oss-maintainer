@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T19:57:36Z",
+  "lastUpdated": "2026-09-05T20:32:18Z",
   "components": [
     {
       "id": "skill:init",
@@ -66,6 +66,14 @@
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/process-discussions/SKILL.md",
       "description": "The skill runs only on explicit user invocation, never by model auto-selection."
+    },
+    {
+      "id": "script:read-discussions",
+      "type": "script",
+      "name": "read_discussions",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/process-discussions/scripts/read_discussions.py",
+      "description": "Bundled with the process-discussions skill."
     },
     {
       "id": "skill:release",
@@ -224,6 +232,18 @@
       "harness": "codex",
       "status": "native",
       "path": "plugins/oss-maintainer/skills/process-discussions/agents/openai.yaml"
+    },
+    {
+      "componentId": "script:read-discussions",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/process-discussions/scripts/read_discussions.py"
+    },
+    {
+      "componentId": "script:read-discussions",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/process-discussions/scripts/read_discussions.py"
     },
     {
       "componentId": "skill:release",

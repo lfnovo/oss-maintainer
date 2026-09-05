@@ -23,6 +23,10 @@ skill. `skills/init/scripts/validate_profile.py` enforces it; this file explains
   blocks the capability that needs the field. A value starting with `CONFIRM:` carries a
   detected proposal (for example `distribution_trigger = "CONFIRM: make tag"`); skills use
   the value after the colon only for analysis and ask for confirmation before any mutation.
+  Markers inside consumed lists/tables also block their dependent capability and are
+  reported by leaf path. Required strings and path values cannot be empty or whitespace.
+  Every selected capability validates shared project identity and communication settings;
+  unrelated optional capabilities do not block a read-only operation.
 - **References, not copies.** Invoking a canonical target (`make test`, `npm run build`) in
   `[commands.*]` is a reference. Copying what the target does is duplication; keep the
   implementation in the `Makefile` or `AGENTS.md`, and point to it with `commands_doc`.

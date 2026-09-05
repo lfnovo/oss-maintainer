@@ -99,3 +99,121 @@ def test_cli_json_output_round_trips():
     assert json.loads(proc.stdout)["distribution_trigger"]["value"] == "make tag"
     text = subprocess.run([sys.executable, str(SCRIPT), "--root", str(FIXTURES / "pypi-library")], capture_output=True, text=True)
     assert "distribution trigger: make tag" in text.stdout
+
+
+def write_workflow(root, name, content):
+    directory = root / '.github/workflows'
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / name).write_text(content)
+
+
+def test_build_only_workflow_is_not_selected_for_release(tmp_path):
+    (tmp_path / 'Dockerfile').write_text('FROM scratch\n')
+    write_workflow(tmp_path, 'build.yml', '''on:
+  pull_request:
+jobs:
+  build:
+    steps:
+      - uses: docker/build-push-action@v6
+        with:
+          push: false
+''')
+    write_workflow(tmp_path, 'publish.yml', '''on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    steps:
+      - run: docker push example/audit:1.0.0
+''')
+    result = dr.detect(tmp_path)
+    assert result['publish_workflow'] == '.github/workflows/publish.yml'
+    assert result['distribution_trigger']['publish_workflow'] == result['publish_workflow']
+    assert result['distribution_trigger']['kind'] == 'release'
+    assert result['workflows'][0]['publishes'] is False
+
+
+def test_docker_push_flag_is_scoped_to_each_step(tmp_path):
+    write_workflow(tmp_path, 'publish.yml', '''on:
+  release:
+jobs:
+  publish:
+    steps:
+      - name: Build only
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+''')
+    assert dr.detect(tmp_path)['distribution_trigger']['kind'] == 'release'
+
+
+def test_docker_action_defaults_to_build_only(tmp_path):
+    write_workflow(tmp_path, 'build.yml', 'on: [pull_request]\njobs:\n  build:\n    steps:\n      - uses: docker/build-push-action@v6\n')
+    result = dr.detect(tmp_path)
+    assert result['workflows'][0]['publishes'] is False
+    assert result['publish_workflow'] is None
+
+
+def test_conditions_are_not_high_confidence(tmp_path):
+    write_workflow(tmp_path, 'publish.yml', '''on:
+  release:
+jobs:
+  publish:
+    if: github.repository_owner == 'example'
+    steps:
+      - run: docker push example/image:1.0.0
+''')
+    result = dr.detect(tmp_path)
+    assert result['distribution_trigger']['confidence'] == 'low'
+    assert any('conditions' in e for e in result['distribution_trigger']['evidence'])
+
+
+def test_multiple_publish_paths_require_selection(tmp_path):
+    for name in ('a.yml', 'b.yml'):
+        write_workflow(tmp_path, name, 'on:\n  release:\njobs:\n  publish:\n    steps:\n      - run: docker push example/image:1.0.0\n')
+    result = dr.detect(tmp_path)
+    assert result['publish_workflow'] is None
+    assert result['distribution_trigger']['value'] is None
+    assert result['distribution_trigger']['confidence'] == 'low'
+
+
+def test_reusable_workflow_reports_uncertainty(tmp_path):
+    write_workflow(tmp_path, 'release.yml', 'on:\n  release:\njobs:\n  publish:\n    uses: example/project/.github/workflows/publish.yml@main\n')
+    result = dr.detect(tmp_path)
+    assert result['publish_workflow'] is None
+    assert any('reusable workflow' in e for e in result['distribution_trigger']['evidence'])
+
+
+def test_condition_as_first_step_key_is_not_missed(tmp_path):
+    write_workflow(tmp_path, 'build.yml', '''on:
+  release:
+jobs:
+  build:
+    steps:
+      - if: github.event_name == 'release'
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+''')
+    result = dr.detect(tmp_path)
+    assert result['workflows'][0]['publishes'] is False
+    assert result['distribution_trigger']['confidence'] == 'low'
+    assert any('conditions' in e for e in result['distribution_trigger']['evidence'])
+
+
+def test_inline_inputs_are_uncertain_instead_of_assumed_build_only(tmp_path):
+    write_workflow(tmp_path, 'publish.yml', '''on:
+  release:
+jobs:
+  build:
+    steps:
+      - uses: docker/build-push-action@v6
+        with: {push: true}
+''')
+    result = dr.detect(tmp_path)
+    assert result['workflows'][0]['publishes'] is True
+    assert result['distribution_trigger']['confidence'] == 'low'
+    assert any('inline' in e for e in result['distribution_trigger']['evidence'])

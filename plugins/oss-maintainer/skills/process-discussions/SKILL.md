@@ -68,6 +68,8 @@ Present the map; agree on the order (default: chronological within the newest co
 
 1. **Fetch everything**: body and all comments, including reply threads, through GraphQL
    (the CLI's Discussions support is partial).
+   Require `complete: true` from the bundled reader for the thread and every queue category;
+   an interrupted read blocks final decisions until the missing context is fetched.
 2. **Decompose into distinct needs.** The single highest-value step: titles undersell, one
    idea is often three or four needs. Number them; each may get a different outcome and home.
 3. **Search precedents**: issues, PRs and discussions, several terms per need, watching for

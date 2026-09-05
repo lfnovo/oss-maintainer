@@ -11,25 +11,24 @@ gh api graphql -f query='{ repository(owner: "<owner>", name: "<name>") {
   id discussionCategories(first: 20) { nodes { id name } } } }'
 ```
 
-## Open threads in a category, oldest first
+## Complete queue and thread reads
+
+Use the bundled reader (paths relative to the skill directory):
 
 ```bash
-gh api graphql -f query='
-{ repository(owner: "<owner>", name: "<name>") {
-    discussions(first: 50, categoryId: "<category id>", orderBy: {field: CREATED_AT, direction: ASC}) {
-      nodes { number title createdAt closed author { login } comments { totalCount } } } } }' \
-  --jq '.data.repository.discussions.nodes[] | select(.closed == false) | "\(.number) | \(.createdAt[:10]) | \(.author.login) | comments:\(.comments.totalCount) | \(.title)"'
+python3 scripts/read_discussions.py queue --repo <owner>/<name> --category '<category id>'
+python3 scripts/read_discussions.py thread --repo <owner>/<name> --number <n>
 ```
 
-## One thread with every comment and reply
+The reader follows every category page before filtering closed threads, and paginates
+comments and each reply connection independently. JSON includes `complete: true` only when
+all requested pages were read. A rate limit, request failure or invalid cursor exits 1 with
+`complete: false`, the error and any partial context collected. Report the interruption and
+resume the read before making a final decision; partial output is not an empty queue or a
+complete thread. Read every configured category to complete the queue map.
 
-```bash
-gh api graphql -f query='
-{ repository(owner: "<owner>", name: "<name>") {
-    discussion(number: <n>) { id title body author { login } createdAt closed
-      comments(first: 100) { nodes { id body author { login } createdAt
-        replies(first: 50) { nodes { body author { login } createdAt } } } } } } }'
-```
+The query shapes and cursor handling are in `scripts/read_discussions.py`; the API contract
+is [GitHub GraphQL pagination](https://docs.github.com/en/graphql/guides/using-pagination-in-the-graphql-api).
 
 ## Post a comment (after approval)
 
@@ -61,7 +60,10 @@ Reasons: `RESOLVED`, `OUTDATED`, `DUPLICATE`.
 ```bash
 gh issue create --title "<title>" --label "<ready label>" --body-file <scratch file>
 gh issue close <n> --comment "$(cat <scratch file>)"
-gh search issues "<terms>" --repo <owner>/<name> --state all --include-prs   # precedents
+gh search issues "<terms>" --repo <owner>/<name> --include-prs   # precedents
 ```
 
 Order matters when linking: create the Issues first, then post the reply with real links.
+
+For `gh search issues`, omit `--state` to search both open and closed items. Unlike
+`gh issue list` and `gh pr list`, the search subcommand accepts only `open` or `closed`.

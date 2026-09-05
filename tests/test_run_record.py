@@ -110,3 +110,65 @@ def test_latest_filters_by_version_and_finish_sets_verdict(tmp_path: Path):
 def test_latest_without_records_returns_null(tmp_path: Path):
     code, out = run("latest", "--root", str(tmp_path))
     assert code == 1 and out == "null"
+
+
+def test_digest_replacement_revokes_approval_and_archives_old_evidence(tmp_path):
+    path = new_record(tmp_path)
+    run('digest', str(path), '--name', 'image', '--value', 'sha256:old')
+    run('update', str(path), '--phase', 'artifact-gate', '--status', 'passed', '--check', 'image-gate=passed:old.log')
+    run('authorize', str(path), '--scope', 'publish', '--candidate', 'abc123')
+    run('finish', str(path), '--verdict', 'GO')
+    run('digest', str(path), '--name', 'image', '--value', 'sha256:new')
+    record = json.loads(path.read_text())
+    assert record['candidate']['digests']['image'] == 'sha256:new'
+    assert record['verdict'] is None and record['finished_at'] is None
+    gate = next(p for p in record['phases'] if p['name'] == 'artifact-gate')
+    assert gate['checks'][0]['status'] == 'not-run'
+    approval = next(p for p in record['phases'] if p['name'] == 'go')['authorizations'][0]
+    assert approval['revoked'] is True
+    assert approval['identity']['digests']['image'] == 'sha256:old'
+    old = record['superseded'][-1]
+    assert old['candidate']['digests']['image'] == 'sha256:old'
+    assert old['verdict'] == 'GO' and old['finished_at']
+    assert next(p for p in old['phases'] if p['name'] == 'artifact-gate')['checks'][0]['evidence'] == 'old.log'
+    _, latest = run('latest', '--root', str(tmp_path))
+    assert json.loads(latest)['verdict'] is None
+    _, todo = run('pending', str(path))
+    assert 'artifact-gate' in [phase['phase'] for phase in json.loads(todo)]
+
+
+def test_completed_candidate_change_clears_terminal_state(tmp_path):
+    path = new_record(tmp_path)
+    run('finish', str(path), '--verdict', 'GO')
+    run('candidate', str(path), '--commit', 'def456')
+    record = json.loads(path.read_text())
+    assert record['verdict'] is None and record['finished_at'] is None
+    assert record['superseded'][-1]['verdict'] == 'GO'
+
+
+def test_same_identity_is_idempotent_and_published_digest_is_separate(tmp_path):
+    path = new_record(tmp_path)
+    run('digest', str(path), '--name', 'wheel', '--value', 'sha256:tested')
+    run('authorize', str(path), '--scope', 'publish', '--candidate', 'abc123')
+    run('finish', str(path), '--verdict', 'GO')
+    before = json.loads(path.read_text())
+    run('candidate', str(path), '--commit', 'abc123')
+    run('digest', str(path), '--name', 'wheel', '--value', 'sha256:tested')
+    assert json.loads(path.read_text()) == before
+    run('digest', str(path), '--name', 'wheel', '--value', 'sha256:distributed', '--published')
+    record = json.loads(path.read_text())
+    assert record['candidate']['digests']['wheel'] == 'sha256:tested'
+    assert record['published']['digests']['wheel'] == 'sha256:distributed'
+    assert record['verdict'] == 'GO'
+    assert record['superseded'] == before['superseded']
+
+
+def test_version_change_at_same_commit_invalidates(tmp_path):
+    path = new_record(tmp_path)
+    run('authorize', str(path), '--scope', 'publish', '--candidate', 'abc123')
+    run('finish', str(path), '--verdict', 'GO')
+    run('candidate', str(path), '--commit', 'abc123', '--version', '2.0.0')
+    record = json.loads(path.read_text())
+    assert record['candidate']['version'] == '2.0.0'
+    assert record['verdict'] is None
+    assert record['phases'][0]['authorizations'][0]['revoked'] is True

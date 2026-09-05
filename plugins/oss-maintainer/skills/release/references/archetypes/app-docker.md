@@ -34,29 +34,32 @@ done
 
 Every reference must list every platform in the profile.
 
-## Rolling tag and re-cut
+## Final publication, rolling tags and re-cuts
 
-Container tags are mutable; that is what makes two things possible and dangerous:
+Pushing `image:<version>` to a public registry distributes that version even when `latest`
+does not move. Both the version push and rolling promotion require the final candidate's GO
+and run in phase 10. Ordinary build or merge approval covers neither action.
 
-- **Rolling promotion** (`[release].latest_promotion`): the publication step promotes the
-  version tag to the rolling tag. Users receive it immediately, so it is behind the GO and
-  verified again after promotion (repeat the manifest check for the rolling tag).
-- **Re-cut after a post-tag fix**, before publication: the fix goes through the normal PR
-  flow; the version stays; the tag moves to the new commit; the image is rebuilt; the artifact
-  gate runs again on the rebuilt image; the version images are pushed again; the owner
-  re-checks the RC stack; only then publication proceeds. A skipped rebuild ships the un-fixed
-  artifact under a fixed-looking tag.
+Before any publication, fixes produce a new candidate and invalidate the affected evidence
+and approval. After a final version is distributed, preserve its tag and image identity:
+a correction gets a new version, a new cut and a new GO. Do not move the published tag or
+push replacement images under that version.
 
-Version images may be pushed before the GO when the CI workflow supports "version tags only,
-no rolling promotion"; that push is autonomous per the gates, the promotion is not.
+## Release candidate for the owner (pre-publication bucket C)
 
-## Release candidate for the owner (bucket C)
+By default, start a browsable stack from the exact locally tested candidate image, pinned by
+image ID/digest. When remote testers need an image, propose **separate RC staging**: an
+immutable prerelease reference such as `image:<version>-rc.<n>`, the tested digest, target
+registry and exact push action. Obtain explicit approval for that staging operation before
+pushing; it is not covered by build/merge approval or inferred from a future final GO.
+Never use the final version reference, a final Git tag or `latest` for staging. A rebuilt RC
+gets a new RC reference and new staging approval; never overwrite the previous one.
 
-Offer a browsable stack from the *pushed* version image (never a local build that could
-shadow the registry), with a copy of the owner's data when realism matters: export from the
-running instance, import into the RC stack, originals untouched. Remind the owner that
-in-container credentials pointing at host services need the container's host alias. Findings
-go back to the fix loop.
+Run manual checks on that local image or pull the approved RC by digest. Record which one
+was tested; final GO still covers only the named final publication action and candidate.
+Use a copy of the owner's data when realism matters, with their authorization; originals
+stay untouched. In-container credentials that point at host services need the host alias.
+Findings go back to the fix loop; they do not justify an early final-version push.
 
 ## Testers before release
 

@@ -18,7 +18,16 @@ mandatory = ["validator", "package-gate", "bucket-c", "notes-approved"]
 
 [artifacts.pypi]
 package = "example-lib"
-gate = "uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import example_lib'"
+gate = '''
+rm -rf dist && uv build &&
+wheel="$(python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
+(
+  check_dir="$(mktemp -d)" &&
+  trap 'rm -rf "$check_dir"' EXIT &&
+  cd "$check_dir" &&
+  uv run --isolated --no-project --with "$wheel" python -I -c 'import example_lib; print(example_lib.__file__)'
+)
+'''
 surfaces = ["library"]
 
 [comms]

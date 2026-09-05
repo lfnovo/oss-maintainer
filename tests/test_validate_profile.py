@@ -151,3 +151,121 @@ def test_text_output_lists_every_capability():
     assert proc.returncode == 0
     for name in vp.CAPABILITIES:
         assert name in proc.stdout
+
+
+def toml_value(value):
+    if isinstance(value, dict):
+        return '{ ' + ', '.join(f'{json.dumps(k)} = {toml_value(v)}' for k, v in value.items()) + ' }'
+    if isinstance(value, list):
+        return '[' + ', '.join(toml_value(v) for v in value) + ']'
+    return json.dumps(value)
+
+
+def set_profile_value(root, dotted, value):
+    profile_path = root / '.maintainer/profile.toml'
+    profile, error = vp.load_toml(profile_path)
+    assert error is None
+    table = profile
+    parts = dotted.split('.')
+    for key in parts[:-1]:
+        table = table[key]
+    table[parts[-1]] = value
+    profile_path.write_text('\n'.join(f'{key} = {toml_value(val)}' for key, val in profile.items()) + '\n')
+
+
+@pytest.mark.parametrize('dotted,value,capability,expected,path', [
+    ('artifacts.docker.registries', ['TODO registry/image'], 'release', 'incomplete', 'artifacts.docker.registries[0]'),
+    ('discussions.categories', {'ideas': 'CONFIRM: DIC_example'}, 'process-discussions', 'needs-confirmation', 'discussions.categories.ideas'),
+    ('labels.ready', 'TODO choose existing label', 'triage', 'incomplete', 'labels.ready'),
+    ('labels.ready', 'TODO choose existing label', 'init', 'incomplete', 'labels.ready'),
+    ('contributing.conventions', 'missing-contributing.md', 'review-pr', 'incomplete', 'contributing.conventions'),
+    ('contributing.conventions', 'missing-contributing.md', 'triage', 'incomplete', 'contributing.conventions'),
+    ('contributing.conventions', 'missing-contributing.md', 'init', 'incomplete', 'contributing.conventions'),
+    ('project.name', '', 'release', 'incomplete', 'project.name'),
+    ('commands.validator.run', '  ', 'release', 'incomplete', 'commands.validator.run'),
+    ('release.distribution_trigger', '', 'release', 'incomplete', 'release.distribution_trigger'),
+    ('artifacts.docker.gate', '', 'release', 'incomplete', 'artifacts.docker.gate'),
+    ('discussions.categories', {'ideas': ' '}, 'process-discussions', 'incomplete', 'discussions.categories.ideas'),
+    ('release.version_files', ['CONFIRM: pyproject.toml'], 'release', 'needs-confirmation', 'release.version_files[0]'),
+])
+def test_unusable_consumed_fields_block(scratch, dotted, value, capability, expected, path):
+    set_profile_value(scratch, dotted, value)
+    proc = subprocess.run([sys.executable, str(SCRIPT), '--root', str(scratch), '--capability', capability, '--json'], capture_output=True, text=True)
+    assert proc.returncode == 1, proc.stderr
+    cap = json.loads(proc.stdout)['capabilities'][capability]
+    assert cap['status'] == expected
+    assert any(path in item for group in ('missing', 'todos', 'confirm') for item in cap[group])
+
+
+@pytest.mark.parametrize('dotted,value', [
+    ('project', 'not-a-table'), ('comms', []), ('release', 1), ('release.gates', 'bad'),
+    ('artifacts', []), ('artifacts.docker', False), ('commands', 'bad'), ('commands.validator', []),
+    ('release.gates.mandatory', [{}]), ('release.gates.merge_own_prs', []),
+    ('comms.agent_attribution', {}), ('smoke', 1), ('smoke.journey', {}),
+    ('smoke.mandatory_surfaces', [{}]), ('discussions', False), ('discussions.close_on', [{}]),
+    ('discussions.graduation', []), ('triage', True), ('triage.batch_approval', {}),
+    ('review', 2), ('labels', 2), ('contributing', []),
+])
+@pytest.mark.parametrize('json_mode', [True, False])
+def test_wrong_structural_types_return_diagnostics(scratch, dotted, value, json_mode):
+    set_profile_value(scratch, dotted, value)
+    args = [sys.executable, str(SCRIPT), '--root', str(scratch)] + (['--json'] if json_mode else [])
+    proc = subprocess.run(args, capture_output=True, text=True)
+    assert proc.returncode == 1, proc.stderr
+    assert not proc.stderr
+    assert dotted in proc.stdout
+    if json_mode:
+        assert any(cap['status'] == 'incomplete' for cap in json.loads(proc.stdout)['capabilities'].values())
+
+
+def test_single_capability_requires_shared_identity(scratch):
+    (scratch / '.maintainer/profile.toml').write_text('schema_version = 1\n[review]\nreviewers = []\n')
+    report, _, code = vp.validate(scratch, ['triage'])
+    assert code == 1
+    assert report.capabilities['triage']['status'] == 'incomplete'
+    assert 'project.repo' in report.capabilities['triage']['missing']
+
+
+def test_unrelated_optional_fields_do_not_block_read_only(scratch):
+    set_profile_value(scratch, 'artifacts.docker.registries', ['TODO'])
+    report, _, code = vp.validate(scratch, ['review-pr'])
+    assert code == 0 and report.capabilities['review-pr']['status'] == 'ready'
+
+
+def test_overlay_on_wrong_base_table_is_reported(scratch):
+    set_profile_value(scratch, 'smoke', 'bad')
+    (scratch / '.maintainer/profile.local.toml').write_text('[smoke]\napi_url = "http://localhost"\n')
+    report, _, code = vp.validate(scratch, ['smoke-e2e'])
+    assert code == 1
+    assert any('smoke' in error for error in report.errors)
+
+
+@pytest.mark.parametrize('dotted,capability', [
+    ('release.lock_command', 'release'), ('release.latest_promotion', 'release'),
+    ('discussions.regenerate', 'process-discussions'), ('triage.extra_states.needs-info', 'triage'),
+])
+def test_optional_consumed_values_also_require_confirmation(scratch, dotted, capability):
+    set_profile_value(scratch, dotted, 'CONFIRM: configure this value')
+    report, _, code = vp.validate(scratch, [capability])
+    assert code == 1
+    assert report.capabilities[capability]['status'] == 'needs-confirmation'
+    assert dotted in report.capabilities[capability]['confirm']
+
+
+@pytest.mark.parametrize('literal', ['2026-01-01', '12:00:00', '2026-01-01T12:00:00Z'])
+def test_temporal_toml_types_keep_json_parseable(scratch, literal):
+    rewrite(scratch, 'name = "example-app"', f'name = {literal}')
+    proc = subprocess.run([sys.executable, str(SCRIPT), '--root', str(scratch), '--json'], capture_output=True, text=True)
+    assert proc.returncode == 1 and not proc.stderr
+    data = json.loads(proc.stdout)
+    assert 'project.name (expected string)' in data['capabilities']['init']['missing']
+
+
+def test_pypi_optional_install_check_is_not_executable_until_confirmed(tmp_path):
+    root = tmp_path / 'repo'
+    shutil.copytree(FIXTURES / 'pypi-library', root)
+    set_profile_value(root, 'release.distribution_trigger', 'make tag')
+    set_profile_value(root, 'artifacts.pypi.install_check', 'TODO choose import')
+    report, _, code = vp.validate(root, ['release'])
+    assert code == 1
+    assert 'artifacts.pypi.install_check' in report.capabilities['release']['todos']

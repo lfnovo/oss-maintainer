@@ -9,7 +9,7 @@ Usage:
   run_record.py update RECORD --phase NAME [--status S] [--check name=status[:evidence]]...
   run_record.py authorize RECORD --scope TEXT --candidate SHA [--by WHO]
   run_record.py candidate RECORD --commit SHA [--version V]     # resets checks and authorizations
-  run_record.py digest RECORD --name REF --value DIGEST
+  run_record.py digest RECORD --name REF --value DIGEST [--published]
   run_record.py latest --root R --skill release [--version V]
   run_record.py pending RECORD
   run_record.py finish RECORD --verdict GO|NO-GO|aborted [--note TEXT]
@@ -20,6 +20,7 @@ Requires Python 3.11+. Standard library only.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import hashlib
 import json
 import sys
@@ -96,6 +97,8 @@ def cmd_new(args) -> int:
         "engine": {"plugin": "oss-maintainer", "version": args.engine_version, "resolution": args.resolution},
         "repo": args.repo,
         "candidate": {"version": args.version, "commit": args.commit, "digests": {}},
+        "published": {"digests": {}},
+        "superseded": [],
         "profile_hash": profile_hash(root),
         "overlay_diff": [],
         "phases": [],
@@ -137,46 +140,70 @@ def cmd_update(args) -> int:
 def cmd_authorize(args) -> int:
     path = Path(args.record)
     record = load(path)
-    if record["candidate"]["commit"] and args.candidate != record["candidate"]["commit"]:
+    if not args.candidate.strip() or args.candidate != record["candidate"]["commit"]:
         print(f"authorization names candidate {args.candidate} but the record's candidate is {record['candidate']['commit']}", file=sys.stderr)
         return 1
     entry = phase(record, args.phase)
-    entry["authorizations"].append({"scope": args.scope, "candidate": args.candidate, "granted_at": now(), "by": args.by})
+    entry["authorizations"].append({"scope": args.scope, "candidate": args.candidate,
+                                    "identity": deepcopy(record["candidate"]),
+                                    "granted_at": now(), "by": args.by})
     save(path, record)
     print(f"authorized: {args.scope} for {args.candidate}")
     return 0
 
 
-def cmd_candidate(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    previous = record["candidate"]["commit"]
-    record["candidate"]["commit"] = args.commit
-    if args.version:
-        record["candidate"]["version"] = args.version
-    record["candidate"]["digests"] = {}
+def invalidate_candidate(record: dict, candidate: dict, reason: str) -> int:
+    """Supersede candidate-bound evidence without losing its original status or identity."""
+    if candidate == record["candidate"]:
+        return 0
+    record.setdefault("superseded", []).append({
+        "at": now(), "reason": reason,
+        **deepcopy({key: record.get(key) for key in
+                    ("candidate", "phases", "published", "verdict", "finished_at")}),
+    })
+    record["candidate"] = candidate
+    record["verdict"] = None
+    record["finished_at"] = None
+    record["published"] = {"digests": {}}
     reset = 0
     for entry in record["phases"]:
+        # Authorizations are always candidate-scoped, even if attached to an early phase.
+        entry["authorizations"] = [dict(a, revoked=True) for a in entry["authorizations"]]
         if entry["name"] in {"scope", "version", "matrix"}:
             continue
         for check in entry["checks"]:
-            if check["status"] == "passed":
-                check["status"] = "not-run"
-                check["invalidated_by"] = args.commit
-                reset += 1
-        if entry["status"] == "passed":
-            entry["status"] = "not-run"
-        entry["authorizations"] = [dict(a, revoked=True) for a in entry["authorizations"]]
-    record["notes"].append(f"{now()} candidate changed {previous} -> {args.commit}; {reset} checks reset")
+            check["status"] = "not-run"
+            check["invalidated_by"] = candidate["commit"]
+            reset += 1
+        entry["status"] = "not-run"
+    record["notes"].append(f"{now()} {reason}; {reset} checks reset")
+    return reset
+
+
+def cmd_candidate(args) -> int:
+    path = Path(args.record)
+    record = load(path)
+    candidate = deepcopy(record["candidate"])
+    candidate["commit"] = args.commit
+    if args.version:
+        candidate["version"] = args.version
+    if candidate != record["candidate"]:
+        candidate["digests"] = {}
+    reset = invalidate_candidate(record, candidate, f"candidate changed to {args.commit} / {candidate['version']}")
     save(path, record)
-    print(f"candidate {args.commit}; {reset} checks reset to not-run; authorizations revoked")
+    print(f"candidate {args.commit}; {reset} checks reset to not-run")
     return 0
 
 
 def cmd_digest(args) -> int:
     path = Path(args.record)
     record = load(path)
-    record["candidate"]["digests"][args.name] = args.value
+    if args.published:
+        record.setdefault("published", {"digests": {}})["digests"][args.name] = args.value
+    else:
+        candidate = deepcopy(record["candidate"])
+        candidate["digests"][args.name] = args.value
+        invalidate_candidate(record, candidate, f"candidate digest changed: {args.name}")
     save(path, record)
     print(f"{args.name}: {args.value}")
     return 0
@@ -270,6 +297,7 @@ def main(argv: list[str]) -> int:
     digest.add_argument("record")
     digest.add_argument("--name", required=True)
     digest.add_argument("--value", required=True)
+    digest.add_argument("--published", action="store_true", help="record an observed distributed digest without changing the candidate")
     digest.set_defaults(func=cmd_digest)
 
     latest = sub.add_parser("latest")
