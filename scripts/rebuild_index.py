@@ -100,7 +100,8 @@ def build() -> dict:
             for harness in targets:
                 adapters.append({"componentId": component_id, "harness": harness, "status": "shared", "path": rel(skill_file)})
             policy = skill_file.parent / "agents" / "openai.yaml"
-            if fields.get("disable-model-invocation") == "true" or policy.exists():
+            codex_user_invoked = policy.exists() and "allow_implicit_invocation: false" in policy.read_text(encoding="utf-8")
+            if fields.get("disable-model-invocation") == "true" or codex_user_invoked:
                 policy_id = f"policy:{name}:user-invoked"
                 components.append({
                     "id": policy_id,
@@ -114,7 +115,7 @@ def build() -> dict:
                     adapters.append({"componentId": policy_id, "harness": "claude", "status": "native", "path": rel(skill_file)})
                 elif "claude" in targets:
                     add_gap(policy_id, "claude", "user-invoked-only", "SKILL.md lacks disable-model-invocation: true")
-                if policy.exists():
+                if codex_user_invoked:
                     adapters.append({"componentId": policy_id, "harness": "codex", "status": "native", "path": rel(policy)})
                 elif "codex" in targets:
                     add_gap(policy_id, "codex", "user-invoked-only", "agents/openai.yaml with allow_implicit_invocation: false is missing")

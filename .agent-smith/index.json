@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T19:56:44Z",
+  "lastUpdated": "2026-09-05T19:57:36Z",
   "components": [
     {
       "id": "skill:init",
@@ -50,14 +50,6 @@
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/plugin-feedback/SKILL.md",
       "description": "Report a bug, a wrong trigger, a gap or an improvement for an oss-maintainer skill by opening an issue on the plugin's repository (lfnovo/oss-maintainer), never by editing the installed plugin. Use when an oss-maintainer skill misbehaves, a profile field or preset does not fit a project, or the maintainer has a suggestion for the plugin."
-    },
-    {
-      "id": "policy:plugin-feedback:user-invoked",
-      "type": "policy",
-      "name": "plugin-feedback user-invoked only",
-      "plugin": "oss-maintainer",
-      "canonicalPath": "plugins/oss-maintainer/skills/plugin-feedback/SKILL.md",
-      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
     },
     {
       "id": "skill:process-discussions",
@@ -210,12 +202,6 @@
       "path": "plugins/oss-maintainer/skills/plugin-feedback/SKILL.md"
     },
     {
-      "componentId": "policy:plugin-feedback:user-invoked",
-      "harness": "codex",
-      "status": "native",
-      "path": "plugins/oss-maintainer/skills/plugin-feedback/agents/openai.yaml"
-    },
-    {
       "componentId": "skill:process-discussions",
       "harness": "claude",
       "status": "shared",
@@ -343,13 +329,6 @@
     }
   ],
   "gaps": [
-    {
-      "componentId": "policy:plugin-feedback:user-invoked",
-      "harness": "claude",
-      "capability": "user-invoked-only",
-      "reason": "SKILL.md lacks disable-model-invocation: true",
-      "status": "unacknowledged"
-    },
     {
       "componentId": "agent:smoke-e2e",
       "harness": "codex",
