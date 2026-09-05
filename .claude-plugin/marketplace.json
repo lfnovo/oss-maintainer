@@ -11,7 +11,7 @@
       "name": "oss-maintainer",
       "source": "./plugins/oss-maintainer",
       "description": "Maintenance workflows for open-source maintainers: issue triage, PR review, release orchestration behind human gates, Discussions facilitation and a smoke gate, driven by a per-repository .maintainer/ profile.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Luis Novo"
       },

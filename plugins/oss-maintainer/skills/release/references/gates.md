@@ -20,6 +20,7 @@ When in doubt, ask. A blocked action is feedback, not an obstacle to route aroun
 | Merging PRs you authored | two-party review; ask once per session when `merge_own_prs = "ask-once-per-session"` and honour the answer |
 | Approving the release notes and announcements | public text |
 | The distribution trigger (phase 10) | the point of no return; for a tag-push pipeline, the tag push itself |
+| RC staging to a registry | separate prerelease reference, candidate digest and explicit staging scope; never a final version or rolling tag |
 | Anything that promotes a rolling channel (`latest`) | users receive it immediately |
 | Creating issues | external artifacts the owner may not want |
 | Mass-labeling issues | bulk modification of shared state |
@@ -57,6 +58,10 @@ covers PRs opened during the run; it does not cover the distribution trigger.
 
 ## GO / NO-GO
 
-A release is GO when every mandatory check is `passed`, bucket C is signed off, no release
+A release is GO when every mandatory pre-publication check is `passed`, pre-publication
+bucket C is signed off, no release
 regression is open, security alerts are resolved or explicitly accepted, and the candidate
 has not changed since the checks ran. Every other state is NO-GO with a stated reason.
+
+Registry-dependent checks run after publication and do not feed its prerequisite GO. A
+publishing merge follows `candidate-and-publication.md`, including merges in the fix loop.

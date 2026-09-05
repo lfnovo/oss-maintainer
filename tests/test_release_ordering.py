@@ -35,3 +35,21 @@ def test_skill_text_states_the_ordering_rule():
     assert "never in phase 7" in text
     assert "### 9 GO" in text and "### 10 Publish" in text
     assert text.index("### 8 Notes and credits") < text.index("### 9 GO") < text.index("### 10 Publish")
+
+
+def test_fresh_version_credits_use_candidate_without_future_tag(tmp_path):
+    import subprocess
+    notes = (PLUGIN / 'skills/release/references/notes-and-credits.md').read_text()
+    import re
+    recipe = re.search(r'`(git log <last-tag>.*?sort -rn)`', notes).group(1)
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    def git(*args):
+        return subprocess.check_output(['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', *args], cwd=tmp_path, text=True).strip()
+    git('commit', '--allow-empty', '-m', 'baseline')
+    git('tag', 'v1.0.0')
+    git('commit', '--allow-empty', '-m', 'new version candidate')
+    candidate = git('rev-parse', 'HEAD')
+    command = recipe.replace('<last-tag>', 'v1.0.0').replace('<candidate-sha>', candidate)
+    result = subprocess.run(['bash', '-o', 'pipefail', '-c', command], cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 0 and 'Fixture' in result.stdout
+    assert git('tag', '--list') == 'v1.0.0'

@@ -31,7 +31,9 @@ Never skip it, never miss anyone. External contributions are the pipeline that k
 project alive; crediting every one of them is part of maintaining it.
 
 1. Commit authors in the release range:
-   `git log <last-tag>..<tag> --pretty='%an <%ae>' | sort | uniq -c | sort -rn`
+   `git log <last-tag>..<candidate-sha> --pretty='%an <%ae>' | sort | uniq -c | sort -rn`
+   Use the prepared candidate SHA even when the final tag does not exist yet. For the
+   first release with no previous tag, use `git log <candidate-sha>` (all reachable history).
 2. Map every non-obvious name to a handle through their PRs:
    `gh pr list --state merged --limit 1000 --search "merged:>=<previous-tag-date>" --json number,author,mergedAt,title`
    then `gh pr view <n> --json author --jq .author.login`. Filter by merge date on the server

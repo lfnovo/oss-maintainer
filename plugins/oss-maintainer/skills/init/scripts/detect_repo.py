@@ -117,19 +117,50 @@ def workflow_triggers(text: str) -> dict:
     return triggers
 
 
+def publishing_evidence(text: str) -> tuple[str, list[str]]:
+    """Exclude build-only Docker steps; regex detection never proves dynamic conditions."""
+    uncertain = []
+    step = re.compile(r"^(?P<indent> +)-\s+(?:[A-Za-z_-]+):[^\n]*(?:\n(?:(?P=indent) +[^\n]*|[ \t]*))*", re.M)
+
+    def inspect(match):
+        block = match.group(0)
+        if "docker/build-push-action" not in block:
+            return block
+        push = re.search(r"^\s+push:\s*([^\n#]*)(?:#.*)?$", block, re.M)
+        inline = re.search(r"^\s+with:\s*\S", block, re.M)
+        if push is None and inline:
+            uncertain.append("inline or indirect Docker inputs require inspection")
+            return block
+        value = push.group(1).strip().strip("\"'").lower() if push else "false"
+        if value == "false":
+            return block.replace("docker/build-push-action", "build-only-action")
+        if value != "true":
+            uncertain.append("Docker push depends on an expression")
+        return block
+
+    cleaned = step.sub(inspect, text)
+    if re.search(r"^\s+(?:-\s+)?if:", cleaned, re.M):
+        uncertain.append("workflow/job/step conditions require inspection")
+    if re.search(r"^\s+uses:\s*(?:\./\.github/workflows/|[^\n]+/\.github/workflows/)", text, re.M):
+        uncertain.append("reusable workflow requires inspection")
+    return cleaned, uncertain
+
+
 def workflows(root: Path) -> list[dict]:
     found = []
     for path in sorted((root / ".github" / "workflows").glob("*.y*ml")):
         text = read(path)
-        steps = [m.group(0) for m in PUBLISH_STEP.finditer(text)]
+        publishing_text, uncertainty = publishing_evidence(text)
+        steps = [m.group(0) for m in PUBLISH_STEP.finditer(publishing_text)]
         found.append({
             "file": path.relative_to(root).as_posix(),
             "triggers": workflow_triggers(text),
             "publishes": bool(steps),
             "publish_steps": sorted(set(s.lower() for s in steps)),
-            "docker": bool(DOCKER_PUBLISH.search(text)),
-            "pypi": bool(PYPI_PUBLISH.search(text)),
-            "npm": bool(NPM_PUBLISH.search(text)),
+            "uncertainty": uncertainty,
+            "docker": bool(DOCKER_PUBLISH.search(publishing_text)),
+            "pypi": bool(PYPI_PUBLISH.search(publishing_text)),
+            "npm": bool(NPM_PUBLISH.search(publishing_text)),
         })
     return found
 
@@ -180,7 +211,7 @@ def detect_archetype(root: Path, targets: dict, flows: list[dict]) -> dict:
     return {"value": "unknown", "confidence": "low", "evidence": ["no Dockerfile, publishing workflow or package manifest found"]}
 
 
-def detect_trigger(root: Path, targets: dict, flows: list[dict], tools: list[str]) -> dict:
+def select_trigger(root: Path, targets: dict, flows: list[dict], tools: list[str]) -> dict:
     evidence = []
     publishing = [f for f in flows if f["publishes"]]
     tag_pushing = {name: t for name, t in targets.items() if t["pushes_tag"]}
@@ -196,23 +227,23 @@ def detect_trigger(root: Path, targets: dict, flows: list[dict], tools: list[str
                 name, target = next(iter(tag_pushing.items()))
                 evidence.append(f"Makefile:{target['line']} target {name} creates and pushes the tag")
                 return {"value": f"make {name}", "kind": "tag-push", "confidence": "high", "evidence": evidence,
-                        "requires_confirmation": True}
+                        "requires_confirmation": True, "publish_workflow": flow["file"]}
             return {"value": "git push origin v<version>", "kind": "tag-push", "confidence": "high", "evidence": evidence,
-                    "requires_confirmation": True}
+                    "requires_confirmation": True, "publish_workflow": flow["file"]}
         if trig["release"]:
             evidence.append(f"{flow['file']}: runs on release and {', '.join(flow['publish_steps'])}")
             return {"value": "gh release create", "kind": "release", "confidence": "high", "evidence": evidence,
-                    "requires_confirmation": True}
+                    "requires_confirmation": True, "publish_workflow": flow["file"]}
     for flow in publishing:
         trig = flow["triggers"]
         if trig["workflow_dispatch"]:
             evidence.append(f"{flow['file']}: publishes on workflow_dispatch")
             return {"value": f"gh workflow run {Path(flow['file']).name}", "kind": "workflow-dispatch", "confidence": "medium",
-                    "evidence": evidence, "requires_confirmation": True}
+                    "evidence": evidence, "requires_confirmation": True, "publish_workflow": flow["file"]}
         if trig["push_branches"]:
             evidence.append(f"{flow['file']}: publishes on push to {', '.join(trig['push_branches'])}")
             return {"value": f"merge to {trig['push_branches'][0]}", "kind": "merge", "confidence": "medium",
-                    "evidence": evidence, "requires_confirmation": True}
+                    "evidence": evidence, "requires_confirmation": True, "publish_workflow": flow["file"]}
     for name, target in targets.items():
         if target["publishes"]:
             evidence.append(f"Makefile:{target['line']} target {name} publishes directly")
@@ -226,6 +257,20 @@ def detect_trigger(root: Path, targets: dict, flows: list[dict], tools: list[str
     return {"value": None, "kind": "unknown", "confidence": "low",
             "evidence": ["no publishing workflow, release tool or publishing Makefile target found"],
             "requires_confirmation": True}
+
+
+def detect_trigger(root: Path, targets: dict, flows: list[dict], tools: list[str]) -> dict:
+    result = select_trigger(root, targets, flows, tools)
+    result.setdefault("publish_workflow", None)
+    publishing = [flow for flow in flows if flow["publishes"]]
+    uncertainty = [f"{flow['file']}: {reason}" for flow in flows for reason in flow["uncertainty"]]
+    if len(publishing) > 1:
+        uncertainty.append("multiple publishing workflows: " + ", ".join(flow["file"] for flow in publishing))
+        result.update(value=None, kind="unknown", publish_workflow=None)
+    if uncertainty:
+        result["confidence"] = "low"
+        result["evidence"].extend(uncertainty)
+    return result
 
 
 def version_files(root: Path) -> list[str]:
@@ -246,17 +291,17 @@ def detect(root: Path) -> dict:
     targets = makefile_targets(root)
     flows = workflows(root)
     tools = release_tools(root)
-    publish_flow = next((f["file"] for f in flows if f["publishes"]), None)
+    trigger = detect_trigger(root, targets, flows, tools)
     return {
         "root": str(root),
         "archetype": detect_archetype(root, targets, flows),
-        "distribution_trigger": detect_trigger(root, targets, flows, tools),
+        "distribution_trigger": trigger,
         "version_files": version_files(root),
         "changelog": first_existing(root, ["CHANGELOG.md", "CHANGES.md", "HISTORY.md"]),
         "commands_doc": first_existing(root, ["AGENTS.md", "CLAUDE.md"]),
         "contributing": first_existing(root, ["CONTRIBUTING.md", "docs/**/contributing.md", ".github/CONTRIBUTING.md"]),
         "process_doc": first_existing(root, [".github/RELEASE_PROCESS.md", "RELEASING.md", "RELEASE.md", "docs/**/release*.md"]),
-        "publish_workflow": publish_flow,
+        "publish_workflow": trigger["publish_workflow"],
         "release_tools": tools,
         "makefile_targets": {
             name: {"line": t["line"], "pushes_tag": t["pushes_tag"], "creates_tag": t["creates_tag"], "publishes": t["publishes"]}

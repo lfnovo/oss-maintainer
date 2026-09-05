@@ -28,3 +28,13 @@ recorded as `not-run`.
 - `claude plugin eval`: early access, not enabled on the maintainer's account; every case is `not-run`. The cases are kept current so they run as soon as the feature is available.
 - Deterministic tests (`tests/`): the merge gate.
 - Codex parity: run `parity/run-codex.sh`; results in `parity/checklist.md`.
+
+## 0.1.1 regression coverage
+
+The new `release-merge-publish-trigger`, `release-docker-rc-authorization` and
+`release-fresh-version-pre-go` cases cover #2, #3 and #11. Their scaffolds were executed
+locally. Native `claude plugin eval` remains early-access/unavailable; direct Claude CLI
+attempts on 2026-09-05 returned the account session limit (HTTP 429) before inference, so
+these behavioral runs are **not-run**, not passed. The deterministic tests execute the
+candidate-SHA credit recipe without a future tag and cover validator failures, candidate
+invalidation, independent GraphQL pagination and isolated wheel/index import recipes.

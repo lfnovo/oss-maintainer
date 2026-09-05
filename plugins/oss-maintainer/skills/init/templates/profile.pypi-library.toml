@@ -33,7 +33,9 @@ merge_own_prs = "ask-once-per-session"
 
 [artifacts.pypi]
 package = "TODO distribution name on PyPI"
-gate = "rm -rf dist && uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import TODO_module'"
+# Configure the module name and use the clean-room recipe in the PyPI archetype reference:
+# resolve an absolute wheel path, run outside the checkout, and use python -I.
+gate = "TODO configure the PyPI clean-room gate for this package's module and surfaces"
 surfaces = ["library"]                      # library | cli | mcp
 extras = []
 identity = "sha256"

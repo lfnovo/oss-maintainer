@@ -52,15 +52,24 @@ releases and costs less than the manual verification it replaces; otherwise veri
 this once and note it in the repository's matrix for next time. Bucket B never feeds a gate
 directly: what gets built joins A, what does not joins C.
 
-## Bucket C — the release owner, started early
+## Bucket C — pre-publication manual checks, started early
 
 - Real credentials: connection tests for the providers whose code changed, one baseline per
   modality that did not.
 - One end-to-end run of the expensive path (a paid API, a generated artifact, a real device).
 - A visual or usability tour of every user-facing change.
-- The published artifact, after phase 10, on a fresh environment.
+- The prepared candidate on a fresh local environment or separately approved RC stack.
 
 Deliver this as a concrete checklist with expected outcomes, tailored to what the release
 touched and to the credentials the owner actually has. A provider or path with no
 credentials is recorded as **unverified this release**, never implied as covered. Start it
 in parallel with bucket A so the owner is never the bottleneck at the end.
+
+## Post-publication verification — phase 11
+
+- Install/pull the distributed artifact in a fresh environment and repeat its surface smokes.
+- Verify registry identity and the release page against the approved candidate and notes.
+
+These checks start `not-run` until publication. Report them separately; they are required to
+finish the release, but cannot be prerequisites to the publication they verify. Do not mark
+them passed or waive them just to obtain the pre-publication GO.

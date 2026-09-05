@@ -1,11 +1,19 @@
 {
   "name": "oss-maintainer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Maintenance workflows for open-source maintainers: issue triage, PR review, release orchestration behind human gates, Discussions facilitation and a smoke gate, driven by a per-repository .maintainer/ profile.",
   "author": {
     "name": "Luis Novo"
   },
   "repository": "https://github.com/lfnovo/oss-maintainer",
   "license": "MIT",
-  "keywords": ["open-source", "maintainer", "release", "triage", "code-review", "discussions", "smoke-test"]
+  "keywords": [
+    "open-source",
+    "maintainer",
+    "release",
+    "triage",
+    "code-review",
+    "discussions",
+    "smoke-test"
+  ]
 }

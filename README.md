@@ -8,7 +8,7 @@ The design is documented in [VISION.md](VISION.md); the market research that inf
 
 ## Status
 
-Version 0.1.0. Skills:
+Version 0.1.1. Skills:
 
 | Skill | Purpose | Invocation |
 |---|---|---|
@@ -75,7 +75,16 @@ distribution_trigger = "make tag"      # creates and pushes the tag; publish.yml
 
 [artifacts.pypi]
 package = "example-lib"
-gate = "rm -rf dist && uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import example_lib'"
+gate = '''
+rm -rf dist && uv build &&
+wheel="$(python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
+(
+  check_dir="$(mktemp -d)" &&
+  trap 'rm -rf "$check_dir"' EXIT &&
+  cd "$check_dir" &&
+  uv run --isolated --no-project --with "$wheel" python -I -c 'import example_lib; print(example_lib.__file__)'
+)
+'''
 ```
 
 ## Layout

@@ -16,6 +16,11 @@ Instantiate against the real release diff. The unit of planning is the risk, not
 
 - TODO: candidates; build when it compounds and costs less than the manual check it replaces.
 
-## Bucket C — the release owner
+## Bucket C — pre-publication manual checks
 
 - TODO: real credentials, real integrations, visual tour.
+
+## Post-publication verification — phase 11
+
+- Verify the distributed artifact and release page after publication; required to finish,
+  never a prerequisite to the GO that authorizes publication.
