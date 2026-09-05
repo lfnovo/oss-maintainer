@@ -1,0 +1,151 @@
+plugins/oss-maintainer/evals/fixtures/overlay-override/.maintainer/profile.local.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-8
+plugins/oss-maintainer/skills/init/templates/snippets/agents-md-pointer.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1
+plugins/oss-maintainer/evals/fixtures/pypi-library/.github/workflows/publish.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-12
+plugins/oss-maintainer/evals/fixtures/overlay-override/.maintainer/release/runbook.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/triage.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/templates/smoke/journey.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-28
+plugins/oss-maintainer/skills/init/agents/openai.yaml
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-6
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/release/runbook.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-6
+plugins/oss-maintainer/evals/fixtures/no-profile/pyproject.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/npm-package/package.json
+  s_9d82c81f34def2::t_07a1c32ec01070 1-5
+plugins/oss-maintainer/evals/fixtures/no-profile/AGENTS.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/overlay-override/pyproject.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/templates/release/test-matrix.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-21
+plugins/oss-maintainer/evals/fixtures/pypi-library/Makefile
+  s_9d82c81f34def2::t_07a1c32ec01070 1-10
+plugins/oss-maintainer/skills/init/templates/triage.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-20
+plugins/oss-maintainer/skills/init/references/readiness.md
+  s_9d82c81f34def2::t_a066ce87d97562 1-40
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/release/test-matrix.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-5
+plugins/oss-maintainer/skills/init/references/profile-schema.md
+  s_9d82c81f34def2::t_f8dda53c6547c2 1-139
+plugins/oss-maintainer/evals/fixtures/pypi-library/pyproject.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/SKILL.md
+  s_9d82c81f34def2::t_2166664300fa02 1-127
+plugins/oss-maintainer/evals/fixtures/npm-package/CHANGELOG.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1
+plugins/oss-maintainer/skills/init/templates/README.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-20
+plugins/oss-maintainer/evals/fixtures/app-docker/.github/workflows/test.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-11
+plugins/oss-maintainer/evals/fixtures/app-docker/.gitignore
+  s_9d82c81f34def2::t_07a1c32ec01070 1-2
+plugins/oss-maintainer/skills/init/templates/gotchas.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-6
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/PROFILE.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/pypi-library/CHANGELOG.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/no-profile/Makefile
+  s_9d82c81f34def2::t_07a1c32ec01070 1-5
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/smoke/journey.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-11
+plugins/oss-maintainer/evals/fixtures/npm-package/.github/workflows/publish.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-10
+plugins/oss-maintainer/evals/fixtures/pypi-library/AGENTS.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/app-docker/AGENTS.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-5
+plugins/oss-maintainer/evals/fixtures/app-docker/CHANGELOG.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-6
+plugins/oss-maintainer/evals/fixtures/app-docker/VISION.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/overlay-override/.maintainer/profile.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-22
+plugins/oss-maintainer/evals/fixtures/app-docker/docker-compose.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-4
+plugins/oss-maintainer/skills/init/references/profile-contract.md
+  s_9d82c81f34def2::t_a066ce87d97562 1-12
+plugins/oss-maintainer/skills/init/templates/profile.minimal.toml
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-33
+plugins/oss-maintainer/evals/fixtures/overlay-override/CHANGELOG.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1
+plugins/oss-maintainer/skills/init/templates/profile.pypi-library.toml
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-64
+plugins/oss-maintainer/skills/init/templates/decisions.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-8
+plugins/oss-maintainer/evals/fixtures/pypi-library/.maintainer/profile.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-26
+plugins/oss-maintainer/evals/fixtures/app-docker/.github/workflows/build-and-release.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-18
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/README.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/app-docker/Makefile
+  s_9d82c81f34def2::t_07a1c32ec01070 1-12
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/profile.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-79
+plugins/oss-maintainer/skills/init/templates/profile.app-docker.toml
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-83
+.agent-smith/index.json
+  s_9d82c81f34def2::t_9cc3c05a6e571e 12,14-45,80-127
+tests/test_validate_profile.py
+  s_9d82c81f34def2::t_aaaebbd9411c25 1-152
+plugins/oss-maintainer/skills/init/references/detection.md
+  s_9d82c81f34def2::t_a066ce87d97562 1-60
+plugins/oss-maintainer/evals/fixtures/app-docker/Dockerfile
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/templates/snippets/gitattributes
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-2
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/gotchas.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/templates/PROFILE.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-19
+plugins/oss-maintainer/skills/init/scripts/detect_repo.py
+  s_9d82c81f34def2::t_10ecb78c1bbaf5 1-95,101-301
+  s_9d82c81f34def2::t_7d623b5f7b8bae 96-100
+plugins/oss-maintainer/evals/fixtures/app-docker/.github/RELEASE_PROCESS.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+tests/test_detect_repo.py
+  s_9d82c81f34def2::t_54cd6d3e5cb6e3 1-101
+plugins/oss-maintainer/evals/fixtures/app-docker/docs/decisions/ADR-001.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/pypi-library/.github/workflows/test.yml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-8
+plugins/oss-maintainer/evals/fixtures/overlay-override/Makefile
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/skills/init/templates/snippets/gitignore
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-3
+plugins/oss-maintainer/skills/init/templates/release/runbook.md
+  s_9d82c81f34def2::t_3bb88c4b837cd5 1-44
+plugins/oss-maintainer/skills/init/scripts/validate_profile.py
+  s_9d82c81f34def2::t_91af5c679549db 1-82,93-106,108-428
+  s_9d82c81f34def2::t_7d623b5f7b8bae 83-92,107
+plugins/oss-maintainer/evals/fixtures/overlay-override/.maintainer/smoke/journey.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-5
+plugins/oss-maintainer/evals/fixtures/app-docker/CONTRIBUTING.md
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+plugins/oss-maintainer/evals/fixtures/app-docker/pyproject.toml
+  s_9d82c81f34def2::t_07a1c32ec01070 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "59aa876793b3cc4f1fb22c32b68842fa3c4573fe",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
