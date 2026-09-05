@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T19:30:19Z",
+  "lastUpdated": "2026-09-05T19:32:41Z",
   "components": [
     {
       "id": "skill:init",
@@ -49,7 +49,15 @@
       "name": "process-discussions",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/process-discussions/SKILL.md",
-      "description": "Facilitate Open Notebook's GitHub Discussions queue — qualify Ideas, decompose them into distinct needs, verify claims in code, propose outcomes (exploring / graduated / parked / combined), draft replies, and graduate small gaps into ready Issues. Use when processing, triaging, or responding to Discussions, or when the user says \"process discussions\" / \"vamos fazer as discussions\"."
+      "description": "Facilitate a repository's GitHub Discussions queue by mapping the queue, decomposing each idea into distinct needs, verifying claims in the code, proposing an outcome (exploring, incubating, graduated, parked, combined, answered, bug) and drafting the reply, one decision at a time, with the maintainer approving every text before it is posted. Use when the maintainer asks to process, facilitate or reply to Discussions."
+    },
+    {
+      "id": "policy:process-discussions:user-invoked",
+      "type": "policy",
+      "name": "process-discussions user-invoked only",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/process-discussions/SKILL.md",
+      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
     },
     {
       "id": "skill:release",
@@ -97,7 +105,7 @@
       "name": "smoke-e2e",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md",
-      "description": "Run Open Notebook's full end-to-end happy path (notebook → sources → chat → ask → transformation → podcast → search → cleanup) against a running dev stack via the API, then verify the UI with Playwright, and report GO / NO-GO. Use when smoke-testing a local stack, gating a release, or when asked to run the smoke test."
+      "description": "Run the repository's end-to-end smoke journey against a running instance (health checks, the API journey declared in .maintainer/smoke/journey.md, UI verification in a browser when one is available), collect evidence, clean up everything created, and give a GO / NO-GO verdict with the status of every check. Use when smoke-testing a running stack, gating a release, or when asked to run the smoke test."
     },
     {
       "id": "skill:triage",
@@ -121,7 +129,7 @@
       "name": "smoke-e2e",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/agents/smoke-e2e.md",
-      "description": "End-to-end smoke test for Open Notebook release preparation. Runs the full happy path (notebook → sources → chat → ask → transform → podcast → search → cleanup) via API against a running dev stack, then verifies the UI with Playwright, and reports GO / NO-GO. Last barrier before a release."
+      "description": "End-to-end smoke test of a running instance for release preparation. Executes the repository's smoke journey (.maintainer/smoke/journey.md) via the API, verifies the UI in a browser when one is available, collects evidence, cleans up, and reports GO / NO-GO with the status of every check. Last barrier before a release."
     }
   ],
   "adapters": [
@@ -184,6 +192,18 @@
       "harness": "codex",
       "status": "shared",
       "path": "plugins/oss-maintainer/skills/process-discussions/SKILL.md"
+    },
+    {
+      "componentId": "policy:process-discussions:user-invoked",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/process-discussions/SKILL.md"
+    },
+    {
+      "componentId": "policy:process-discussions:user-invoked",
+      "harness": "codex",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/process-discussions/agents/openai.yaml"
     },
     {
       "componentId": "skill:release",

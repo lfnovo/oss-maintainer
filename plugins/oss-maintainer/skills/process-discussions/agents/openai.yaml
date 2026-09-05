@@ -1,0 +1,6 @@
+interface:
+  display_name: "Process Discussions"
+  short_description: "Facilitate the GitHub Discussions queue; every reply approved before posting"
+  default_prompt: "Use $process-discussions to work through the open Discussions of this repository."
+policy:
+  allow_implicit_invocation: false
