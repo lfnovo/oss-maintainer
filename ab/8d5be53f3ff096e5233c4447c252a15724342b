@@ -1,0 +1,21 @@
+.agent-smith/index.json
+  s_9d82c81f34def2::t_44c2a409d50593 12
+scripts/rebuild_index.py
+  s_9d82c81f34def2::t_c0bace046aef8c 103-104,118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ab8d5be53f3ff096e5233c4447c252a15724342b",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
