@@ -22,3 +22,9 @@ Scenario material for the `oss-maintainer` plugin.
 
 No case ever calls the live GitHub API: fixtures use local bare repositories, or the step is
 recorded as `not-run`.
+
+## Status of the eval layers (2026-09-05)
+
+- `claude plugin eval`: early access, not enabled on the maintainer's account; every case is `not-run`. The cases are kept current so they run as soon as the feature is available.
+- Deterministic tests (`tests/`): the merge gate.
+- Codex parity: run `parity/run-codex.sh`; results in `parity/checklist.md`.
