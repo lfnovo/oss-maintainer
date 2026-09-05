@@ -1,0 +1,101 @@
+plugins/oss-maintainer/evals/cases/overlay-gate-ignored/graders/02-rejected-reported.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/overlay-gate-ignored/graders/03-gate-kept.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/overlay-gate-ignored/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/triage-no-profile-readonly/graders/02-read-only.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/triage-no-profile-readonly/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+scripts/render_docs.py
+  s_9d82c81f34def2::t_e8fb8747f82076 1-31
+plugins/oss-maintainer/evals/cases/release-partial-publish/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/smoke-ui-unavailable/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/release-partial-publish/graders/02-resumes.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/smoke-ui-unavailable/graders/03-no-go.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/triage-no-profile-readonly/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/triage-no-profile-readonly/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/init-no-profile/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/init-no-profile/graders/04-no-invented-commands.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/overlay-gate-ignored/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/review-pr-self-rule-change/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/review-pr-self-rule-change/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-16
+plugins/oss-maintainer/evals/parity/run-codex.sh
+  s_9d82c81f34def2::t_b90fa66ee4d07e 1-33
+plugins/oss-maintainer/evals/cases/smoke-ui-unavailable/prompt.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-13
+plugins/oss-maintainer/evals/cases/init-no-profile/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/triage-no-profile-readonly/graders/03-no-mutation.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/init-no-profile/graders/02-profile-written.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/graders/02-trigger-detected.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/graders/04-stops-at-go.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/init-no-profile/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/release-partial-publish/graders/03-only-registry-b.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/graders/03-no-tag-created.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/review-pr-self-rule-change/graders/02-base-policies.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/parity/checklist.md
+  s_9d82c81f34def2::t_b90fa66ee4d07e 1-27
+docs/profile-reference.md
+  s_9d82c81f34def2::t_e8fb8747f82076 1-187
+plugins/oss-maintainer/evals/cases/review-pr-self-rule-change/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+README.md
+  s_9d82c81f34def2::t_e8fb8747f82076 11,13,15-20,22-24,48,61-62,65,74
+plugins/oss-maintainer/evals/cases/release-partial-publish/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/release-tag-push-trigger/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-9
+plugins/oss-maintainer/evals/cases/smoke-ui-unavailable/graders/02-not-run.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/init-no-profile/graders/03-readiness-table.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-8
+plugins/oss-maintainer/evals/cases/smoke-ui-unavailable/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/cases/release-partial-publish/scaffold.sh
+  s_9d82c81f34def2::t_5b7924d7abb738 1-28
+plugins/oss-maintainer/evals/cases/overlay-gate-ignored/graders/01-skill-fired.md
+  s_9d82c81f34def2::t_5b7924d7abb738 1-7
+plugins/oss-maintainer/evals/README.md
+  s_9d82c81f34def2::t_d3dc93f7bd0a59 25-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a06efafb1cf77176a6e54fb0708296692442339d",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
