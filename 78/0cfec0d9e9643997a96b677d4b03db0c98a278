@@ -1,0 +1,35 @@
+plugins/oss-maintainer/skills/triage/agents/openai.yaml
+  s_9d82c81f34def2::t_5880c1a39cac16 1-6
+plugins/oss-maintainer/skills/review-pr/agents/openai.yaml
+  s_9d82c81f34def2::t_5880c1a39cac16 1-6
+plugins/oss-maintainer/skills/triage/SKILL.md
+  s_9d82c81f34def2::t_3a3f6757558191 1-140
+plugins/oss-maintainer/skills/triage/references/github-recipes.md
+  s_9d82c81f34def2::t_5880c1a39cac16 1-54
+plugins/oss-maintainer/skills/triage/references/ladder-preset.md
+  s_9d82c81f34def2::t_7bfc3bc5119278 1-65
+plugins/oss-maintainer/skills/review-pr/SKILL.md
+  s_9d82c81f34def2::t_8151d3b0c40c51 1-136
+plugins/oss-maintainer/skills/review-pr/references/github-recipes.md
+  s_9d82c81f34def2::t_5880c1a39cac16 1-59
+plugins/oss-maintainer/skills/triage/references/profile-contract.md
+  s_9d82c81f34def2::t_5880c1a39cac16 1-15
+plugins/oss-maintainer/skills/review-pr/references/profile-contract.md
+  s_9d82c81f34def2::t_5880c1a39cac16 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "780cfec0d9e9643997a96b677d4b03db0c98a278",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
