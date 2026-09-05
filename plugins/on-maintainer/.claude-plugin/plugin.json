@@ -1,0 +1,10 @@
+{
+  "name": "on-maintainer",
+  "version": "0.1.0",
+  "description": "Maintainer tooling for Open Notebook: release orchestration, GitHub Discussions facilitation, and the end-to-end smoke gate.",
+  "author": {
+    "name": "Luis Novo"
+  },
+  "repository": "https://github.com/lfnovo/open-notebook-mgmt",
+  "keywords": ["open-notebook", "maintainer", "release", "discussions", "smoke-test"]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "open-notebook-mgmt",
+  "description": "Maintainer plugins for Open Notebook (lfnovo/open-notebook)",
+  "plugins": [
+    {
+      "name": "on-maintainer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/on-maintainer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "development",
+      "version": "0.1.0"
+    }
+  ]
+}

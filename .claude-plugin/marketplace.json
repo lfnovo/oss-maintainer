@@ -1,0 +1,22 @@
+{
+  "name": "open-notebook-mgmt",
+  "owner": {
+    "name": "Luis Novo"
+  },
+  "homepage": "https://github.com/lfnovo/open-notebook-mgmt",
+  "metadata": {
+    "description": "Maintainer plugins for Open Notebook (lfnovo/open-notebook)"
+  },
+  "plugins": [
+    {
+      "name": "on-maintainer",
+      "source": "./plugins/on-maintainer",
+      "description": "Maintainer tooling for Open Notebook: release orchestration, GitHub Discussions facilitation, and the end-to-end smoke gate.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Luis Novo"
+      },
+      "category": "development"
+    }
+  ]
+}

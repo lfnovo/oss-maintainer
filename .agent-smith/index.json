@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2.0",
+  "topology": "marketplace",
+  "targets": ["claude", "codex"],
+  "canonicalPaths": {
+    "skills": "plugins/on-maintainer/skills",
+    "index": ".agent-smith/index.json"
+  },
+  "lastUpdated": "2026-09-05T15:00:00Z",
+  "components": [
+    {
+      "id": "skill:release",
+      "type": "skill",
+      "name": "release",
+      "plugin": "on-maintainer",
+      "canonicalPath": "plugins/on-maintainer/skills/release/SKILL.md",
+      "description": "Orchestrate an Open Notebook release: changelog audit, risk-based test matrix, image gate, fix loop, cut, publication, retro"
+    },
+    {
+      "id": "skill:process-discussions",
+      "type": "skill",
+      "name": "process-discussions",
+      "plugin": "on-maintainer",
+      "canonicalPath": "plugins/on-maintainer/skills/process-discussions/SKILL.md",
+      "description": "Facilitate the GitHub Discussions queue: qualify Ideas, decompose needs, verify claims, propose outcomes, draft replies, graduate to Issues"
+    },
+    {
+      "id": "skill:smoke-e2e",
+      "type": "skill",
+      "name": "smoke-e2e",
+      "plugin": "on-maintainer",
+      "canonicalPath": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md",
+      "description": "Full end-to-end happy path via API plus Playwright UI verification; GO / NO-GO release gate"
+    },
+    {
+      "id": "agent:smoke-e2e",
+      "type": "agent",
+      "name": "smoke-e2e",
+      "plugin": "on-maintainer",
+      "canonicalPath": "plugins/on-maintainer/agents/smoke-e2e.md",
+      "description": "Subagent adapter that preloads and executes the smoke-e2e skill"
+    }
+  ],
+  "adapters": [
+    { "componentId": "skill:release", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/release/SKILL.md" },
+    { "componentId": "skill:release", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/release/SKILL.md" },
+    { "componentId": "skill:process-discussions", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/process-discussions/SKILL.md" },
+    { "componentId": "skill:process-discussions", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/process-discussions/SKILL.md" },
+    { "componentId": "skill:smoke-e2e", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md" },
+    { "componentId": "skill:smoke-e2e", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md" },
+    { "componentId": "agent:smoke-e2e", "harness": "claude", "status": "native", "path": "plugins/on-maintainer/agents/smoke-e2e.md", "sourcePath": "plugins/on-maintainer/skills/smoke-e2e" }
+  ],
+  "gaps": [
+    {
+      "componentId": "agent:smoke-e2e",
+      "harness": "codex",
+      "capability": "plugin-bundled-agent",
+      "reason": "Codex plugins have no bundled custom-agent directory. Codex users run the shared smoke-e2e skill directly (or in a generic subagent); the release skill is worded for both cases.",
+      "status": "accepted"
+    }
+  ],
+  "marketplaces": [
+    {
+      "harness": "claude",
+      "manifestPath": ".claude-plugin/marketplace.json",
+      "plugins": [
+        { "name": "on-maintainer", "sourceType": "local", "path": "plugins/on-maintainer", "managed": true }
+      ]
+    },
+    {
+      "harness": "codex",
+      "manifestPath": ".agents/plugins/marketplace.json",
+      "plugins": [
+        { "name": "on-maintainer", "sourceType": "local", "path": "plugins/on-maintainer", "managed": true }
+      ]
+    }
+  ]
+}
