@@ -48,6 +48,36 @@ Run `init` inside a checkout. It reads the `Makefile`, the workflows, `AGENTS.md
 
 The profile format is documented in [docs/profile-reference.md](docs/profile-reference.md) (rationale in VISION.md section 4). Only `profile.toml` is mandatory; skills that only read work without a profile and say which policies they assumed.
 
+## How it works
+
+1. **Profile, not prompts.** `init` reads what the repository already declares (Makefile, workflows, `AGENTS.md`, changelog, package manifests) and proposes `.maintainer/profile.toml` with the archetype, the canonical commands, the gates and, above all, the *distribution trigger*: the first action that can start public distribution. Anything it cannot derive stays `TODO`; anything it derived but you have not confirmed stays `CONFIRM:`.
+2. **Invariants in the engine, policies in the profile.** Checking premises against the code, showing evidence, confirming before every mutation and verifying results in the external system are the same everywhere. Which states triage may assign, what closes a Discussion, which gates a release needs and which language goes public are yours, with our practice shipped as presets.
+3. **Human gates with scope.** Every check ends as `passed`, `failed`, `not-run` or `not-applicable`; a gate is GO only when every mandatory check passed. A GO names the candidate (commit, digests) and lapses when it changes. The distribution trigger runs only after the GO, never before, even when it is a `make tag` that pushes.
+4. **Resumable runs.** Releases and smoke runs write a record under `.maintainer/state/runs/`; a new run reads the record and the external systems, and repeats only what is missing.
+
+A minimal profile for a PyPI library:
+
+```toml
+schema_version = 1
+
+[project]
+name = "example-lib"
+repo = "example/lib"
+artifact = "pypi-library"
+
+[commands.validator]
+run = "make test lint"
+
+[release]
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+distribution_trigger = "make tag"      # creates and pushes the tag; publish.yml publishes on tag push
+
+[artifacts.pypi]
+package = "example-lib"
+gate = "rm -rf dist && uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import example_lib'"
+```
+
 ## Layout
 
 ```
