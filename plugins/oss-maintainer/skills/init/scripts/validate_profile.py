@@ -179,6 +179,13 @@ def validate_commands(profile: dict, cap: dict, root: Path) -> dict:
 def validate_init(profile: dict, report: Report, root: Path) -> None:
     cap = report.capability("init")
     project = profile.get("project", {})
+    upstreams = profile.get("upstreams", {})
+    if isinstance(upstreams, dict):
+        for name, path in upstreams.items():
+            if not isinstance(path, str) or not (root / path).exists():
+                cap["warnings"].append(f"upstreams.{name}: local checkout not found ({path})")
+    else:
+        cap["missing"].append("upstreams (expected table of name = path)")
     check_field(cap, project, "project.name", "str", True, root)
     repo = check_field(cap, project, "project.repo", "str", True, root)
     if isinstance(repo, str) and not REPO.match(repo):

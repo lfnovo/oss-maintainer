@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for maintainers of open-source projects, driven by a per-repository `.maintainer/` profile.
   Skills: `init` (bootstrap and validate the profile), `triage`, `review-pr`, `release`
   (orchestration behind human gates, `app-docker` and `pypi-library` archetypes),
-  `process-discussions` and `smoke-e2e`; a Claude subagent adapter for `smoke-e2e`.
+  `process-discussions`, `smoke-e2e` and `plugin-feedback` (files an issue on this repository);
+  a Claude subagent adapter for `smoke-e2e`.
 - Profile schema v1, deterministic profile validator and repository detection scripts,
   fixture repositories, scenario tests and eval cases.
 

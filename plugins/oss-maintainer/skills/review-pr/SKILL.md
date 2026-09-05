@@ -104,7 +104,8 @@ most P2. No findings: say so explicitly and recommend approve. Findings that rec
 are flagged as candidates for a principle in the architecture document or a rule for the
 project's reviewers.
 
-**Wait for the maintainer's decision. Nothing is written to the PR without it.**
+**Wait for the maintainer's decision. Nothing is written to the PR without it.** When no
+decision can be obtained in this session (a non-interactive run), the report is the result.
 
 ## Apply the decision
 

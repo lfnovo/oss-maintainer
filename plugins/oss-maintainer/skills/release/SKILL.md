@@ -131,7 +131,8 @@ Present the gate table: every mandatory check and its status with evidence, the 
 checks, bucket C, open regressions, alerts. Any mandatory check that is not `passed` is a
 NO-GO with the reason, and the work goes back to phase 6. Ask for the GO naming the
 candidate commit, its digests and the exact trigger that will run. Record the authorization
-with its scope.
+with its scope. When no answer can be obtained in this session (a non-interactive run), the
+run ends here with the gate table and no publication.
 
 ### 10 Publish
 

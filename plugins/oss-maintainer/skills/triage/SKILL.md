@@ -91,7 +91,8 @@ One block per issue, in the maintainer's language:
 
 ### Confirm
 
-Wait for an explicit answer before any write. The maintainer may redirect ("needs-design
+Wait for an explicit answer before any write. When no answer can be obtained in this session
+(a non-interactive run), stop after the report and apply nothing. The maintainer may redirect ("needs-design
 instead", "close as duplicate of #N"). By default one issue at a time. When
 `[triage].batch_approval = "allowed"`, a reviewed set may be authorized at once, provided
 every proposal, text and effect was shown; that is never a blanket approval.

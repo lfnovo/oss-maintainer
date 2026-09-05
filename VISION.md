@@ -352,11 +352,12 @@ oss-maintainer/                      # marketplace: oss-maintainer
     │   ├── review-pr/               # SKILL.md + references/ (GitHub recipes)
     │   ├── release/                 # SKILL.md + references/ (gates, matrix, notes templates)
     │   ├── process-discussions/     # SKILL.md + references/
-    │   └── smoke-e2e/               # SKILL.md
+    │   ├── smoke-e2e/               # SKILL.md
+    │   └── plugin-feedback/         # SKILL.md: file an issue on the plugin repository
     └── agents/smoke-e2e.md          # Claude subagent adapter
 ```
 
-Invocation: `/oss-maintainer:triage`, `/oss-maintainer:review-pr`, `/oss-maintainer:release`, `/oss-maintainer:process-discussions`, `/oss-maintainer:smoke-e2e`, `/oss-maintainer:init` in Claude Code; by name in Codex. Every skill that changes public state (`triage`, `review-pr`, `release`, `process-discussions`) is user-invoked only, with no model auto-invocation; `smoke-e2e` may be delegated by `release`.
+Invocation: `/oss-maintainer:triage`, `/oss-maintainer:review-pr`, `/oss-maintainer:release`, `/oss-maintainer:process-discussions`, `/oss-maintainer:smoke-e2e`, `/oss-maintainer:init` in Claude Code; by name in Codex. Every skill that changes public state (`triage`, `review-pr`, `release`, `process-discussions`) is user-invoked only, with no model auto-invocation; `smoke-e2e` may be delegated by `release`. `plugin-feedback` opens an issue on the plugin repository about a skill (never a local edit of the installed plugin) and may be suggested by the model when a skill misbehaves; it files only after approval.
 
 Each skill carries its own GitHub recipes under `references/`. The validator forbids a skill referencing files outside its directory, so the small overlap between `triage` and `review-pr` recipes is accepted over a shared file (open question in section 8).
 

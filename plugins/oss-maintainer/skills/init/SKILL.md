@@ -100,7 +100,10 @@ Show the maintainer the complete set of changes before writing anything: the fil
 (when `CLAUDE.md` exists and does not contain `@AGENTS.md`, mention it; do not duplicate the
 line), the `.gitignore` entries from `templates/snippets/gitignore`, and, when the project
 publishes tarballs, the `.gitattributes` line from `templates/snippets/gitattributes`. Write
-only after an explicit answer.
+only after an explicit answer. When no answer can be obtained in this session (a
+non-interactive run, a caller that cannot reply), stop after presenting the proposal and
+write nothing; a pre-approval stated in the request counts as the answer only for exactly
+what it names.
 
 Then offer to open the PR following the repository's contribution conventions
 (`[contributing].conventions` or `CONTRIBUTING.md`); with no conventions, use a conventional

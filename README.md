@@ -18,6 +18,7 @@ Version 0.1.0. Skills:
 | `release` | Orchestrate a release behind human gates (`app-docker`, `pypi-library`, `custom` archetypes) | explicit only |
 | `process-discussions` | Facilitate the GitHub Discussions queue; every reply approved before posting | explicit only |
 | `smoke-e2e` | Run the product journey on a running instance and give a GO / NO-GO verdict | model or explicit |
+| `plugin-feedback` | Open an issue on this repository about a skill, never editing the installed plugin | model or explicit |
 
 "Explicit only" means the model never auto-selects the skill: `disable-model-invocation` in
 Claude Code and `policy.allow_implicit_invocation: false` in Codex. `smoke-e2e` also ships as a
@@ -73,6 +74,10 @@ tests/                              deterministic tests (pytest, Python 3.11+)
 - Rebuild the index with `python3 scripts/rebuild_index.py` after adding or removing components.
 - Validate: `python3 -m pytest`, `claude plugin validate .`, and the agent-smith validator (`validate_repository.py .`). Scenario evals: `claude plugin eval plugins/oss-maintainer --scaffold` (early access); Codex parity: `plugins/oss-maintainer/evals/parity/run-codex.sh`.
 - Releases are tagged `oss-maintainer--v<version>` with `claude plugin tag --push`, so marketplaces can pin by `ref`.
+
+## Feedback
+
+Something misbehaved or could be better? Run `/oss-maintainer:plugin-feedback` (Claude Code) or `$plugin-feedback` (Codex): it drafts an issue for this repository with the skill, the harness, the readiness table and redacted evidence, and files it after your approval.
 
 ## Boundary with `snl-pm`
 

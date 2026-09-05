@@ -76,6 +76,7 @@ def test_overlay_applies_preferences_and_rejects_policy():
     assert effective["smoke"]["api_url"] == "http://localhost:9999"
     assert effective["release"]["gates"]["mandatory"] == ["validator", "notes-approved"]
     assert payload["capabilities"]["release"]["status"] == "ready"
+    assert any("example-lib" in w for w in payload["capabilities"]["init"]["warnings"])
     assert code == 0
 
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plugin feedback"
+  short_description: "Open an issue on lfnovo/oss-maintainer about a skill of this plugin"
+  default_prompt: "Use $plugin-feedback to report a problem or a suggestion about an oss-maintainer skill."

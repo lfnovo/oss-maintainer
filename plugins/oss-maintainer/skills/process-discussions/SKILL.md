@@ -103,7 +103,8 @@ offered, the status line. No promises, no timelines, no filler.
 ## Phase 4 — Approval, then post
 
 Present decisions in the format of `references/decision-format.md`, numbered ("Decision 2 of
-4"). Default: one decision at a time. When `[triage].batch_approval = "allowed"` the
+4"). Default: one decision at a time. When no answer can be obtained in this session (a
+non-interactive run), the decisions are the deliverable and nothing is posted. When `[triage].batch_approval = "allowed"` the
 maintainer may authorize a reviewed set at once, every proposal and text visible. On
 approval, execute the whole package in order, side actions first (issues created, threads
 renamed, closures) and the reply last so it carries real links, then report the URLs and
