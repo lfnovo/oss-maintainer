@@ -1,0 +1,19 @@
+.gitignore
+  s_9d82c81f34def2::t_c8703bd7a6bf4c 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "546787e66327d1178e2e14c4844aba44f4ac130a",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
