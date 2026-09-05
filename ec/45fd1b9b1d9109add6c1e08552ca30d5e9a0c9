@@ -1,0 +1,49 @@
+plugins/oss-maintainer/skills/release/references/recipes.md
+  s_9d82c81f34def2::t_c310f4b8468796 1-68
+plugins/oss-maintainer/skills/release/references/profile-contract.md
+  s_9d82c81f34def2::t_56699f84381d59 1-22
+plugins/oss-maintainer/skills/release/SKILL.md
+  s_9d82c81f34def2::t_a6622c094b8daf 3-5,8-188
+plugins/oss-maintainer/skills/release/references/archetypes/custom.md
+  s_9d82c81f34def2::t_52ec1039655326 1-19
+tests/test_run_record.py
+  s_9d82c81f34def2::t_24e360c42d3ab5 1-112
+plugins/oss-maintainer/skills/release/references/notes-and-credits.md
+  s_9d82c81f34def2::t_b4c36e2fc361d2 1-67
+.agent-smith/index.json
+  s_9d82c81f34def2::t_5affce05da3d71 12,60-92,102-117,200-206,212-214,221-222,232-234
+  s_9d82c81f34def2::t_36d3ce86507529 207-211,215-220,223-231,235-247,260-283
+plugins/oss-maintainer/skills/release/references/archetypes/app-docker.md
+  s_9d82c81f34def2::t_5e31ba46506429 1-70
+tests/test_release_ordering.py
+  s_9d82c81f34def2::t_24e360c42d3ab5 1-37
+plugins/oss-maintainer/skills/release/scripts/run_record.py
+  s_9d82c81f34def2::t_18d6da9fa4c34e 84,86-89
+  s_9d82c81f34def2::t_b890dbec0229db 1-83,85,90-296
+plugins/oss-maintainer/skills/release/references/test-matrix.md
+  s_9d82c81f34def2::t_2fcaf2657a7195 1,3-8,10-12,14,16,18-22,24-26,28,30,32-43,45,47-48,50-53,55,57-61,63-66
+plugins/oss-maintainer/skills/release/references/archetypes/pypi-library.md
+  s_9d82c81f34def2::t_e2d43488fab8e1 1-88
+plugins/oss-maintainer/skills/release/references/gates.md
+  s_9d82c81f34def2::t_530a3750460ca2 1,3,5,7-14,16,20-29,33-49,53-56,58,60-62
+plugins/oss-maintainer/skills/release/references/run-record.md
+  s_9d82c81f34def2::t_a9c973ec789c1d 1-70
+plugins/oss-maintainer/skills/release/agents/openai.yaml
+  s_9d82c81f34def2::t_24e360c42d3ab5 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ec45fd1b9b1d9109add6c1e08552ca30d5e9a0c9",
+  "prompts": {},
+  "sessions": {
+    "s_9d82c81f34def2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4345219f-f103-41b3-99ee-c5462baea598",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
