@@ -1,0 +1,4 @@
+services:
+  app:
+    build: .
+    ports: ['5055:5055']

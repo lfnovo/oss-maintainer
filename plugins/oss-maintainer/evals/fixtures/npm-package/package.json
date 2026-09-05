@@ -1,0 +1,5 @@
+{
+  "name": "example-pkg",
+  "version": "0.9.1",
+  "publishConfig": { "access": "public" }
+}

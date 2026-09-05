@@ -1,0 +1,33 @@
+# .maintainer/profile.toml — minimal profile: review and triage only (schema v1)
+# Add [release], [discussions] or [smoke] later by running init again.
+schema_version = 1
+
+[project]
+name = "TODO project name"
+repo = "TODO owner/name"
+artifact = "unknown"
+commands_doc = "AGENTS.md"
+
+[labels]
+needs_triage = "needs-triage"
+needs_design = "needs-design"
+needs_vision = "needs-vision"
+awaiting_demand = "awaiting-demand"
+ready = "ready"
+released = "released"
+bug = "bug"
+
+[triage]
+preset = "maturity-ladder"
+assignable = ["close", "needs-design", "ready"]
+extra_states = {}
+batch_approval = "one-at-a-time"
+
+[review]
+docs = ["AGENTS.md"]
+reviewers = []
+
+[comms]
+owner_language = "en"
+public_language = "en"
+agent_attribution = "none"

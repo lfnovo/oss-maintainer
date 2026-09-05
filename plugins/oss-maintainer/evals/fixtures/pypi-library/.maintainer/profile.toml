@@ -1,0 +1,26 @@
+schema_version = 1
+
+[project]
+name = "example-lib"
+repo = "example/lib"
+artifact = "pypi-library"
+
+[commands.validator]
+run = "make test lint"
+
+[release]
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+distribution_trigger = "TODO"
+
+[release.gates]
+mandatory = ["validator", "package-gate", "bucket-c", "notes-approved"]
+
+[artifacts.pypi]
+package = "example-lib"
+gate = "uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import example_lib'"
+surfaces = ["library"]
+
+[comms]
+owner_language = "en"
+public_language = "en"

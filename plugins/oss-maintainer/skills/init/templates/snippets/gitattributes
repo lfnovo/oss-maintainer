@@ -1,0 +1,2 @@
+# keep the maintainer profile out of published tarballs (does not affect git push)
+.maintainer/ export-ignore

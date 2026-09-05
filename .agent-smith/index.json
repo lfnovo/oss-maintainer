@@ -9,8 +9,40 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T19:12:53Z",
+  "lastUpdated": "2026-09-05T19:21:51Z",
   "components": [
+    {
+      "id": "skill:init",
+      "type": "skill",
+      "name": "init",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/init/SKILL.md",
+      "description": "Bootstrap, validate or upgrade a repository's `.maintainer/` profile for the oss-maintainer workflows, and report which capabilities (review, triage, release, discussions, smoke) are ready. Use when a repository has no profile yet, when a skill reports the profile as incomplete, or when the maintainer asks what is ready."
+    },
+    {
+      "id": "policy:init:user-invoked",
+      "type": "policy",
+      "name": "init user-invoked only",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/init/SKILL.md",
+      "description": "The skill runs only on explicit user invocation, never by model auto-selection."
+    },
+    {
+      "id": "script:detect-repo",
+      "type": "script",
+      "name": "detect_repo",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/init/scripts/detect_repo.py",
+      "description": "Bundled with the init skill."
+    },
+    {
+      "id": "script:validate-profile",
+      "type": "script",
+      "name": "validate_profile",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/init/scripts/validate_profile.py",
+      "description": "Bundled with the init skill."
+    },
     {
       "id": "skill:process-discussions",
       "type": "skill",
@@ -45,6 +77,54 @@
     }
   ],
   "adapters": [
+    {
+      "componentId": "skill:init",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/SKILL.md"
+    },
+    {
+      "componentId": "skill:init",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/SKILL.md"
+    },
+    {
+      "componentId": "policy:init:user-invoked",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/init/SKILL.md"
+    },
+    {
+      "componentId": "policy:init:user-invoked",
+      "harness": "codex",
+      "status": "native",
+      "path": "plugins/oss-maintainer/skills/init/agents/openai.yaml"
+    },
+    {
+      "componentId": "script:detect-repo",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/detect_repo.py"
+    },
+    {
+      "componentId": "script:detect-repo",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/detect_repo.py"
+    },
+    {
+      "componentId": "script:validate-profile",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/validate_profile.py"
+    },
+    {
+      "componentId": "script:validate-profile",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/validate_profile.py"
+    },
     {
       "componentId": "skill:process-discussions",
       "harness": "claude",

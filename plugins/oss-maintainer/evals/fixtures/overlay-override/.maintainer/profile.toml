@@ -1,0 +1,22 @@
+schema_version = 1
+
+[project]
+name = "example-overlay"
+repo = "example/overlay"
+artifact = "custom"
+
+[commands.validator]
+run = "make test"
+
+[release]
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+distribution_trigger = "bash .maintainer/release/publish.sh"
+
+[release.gates]
+mandatory = ["validator", "notes-approved"]
+
+[smoke]
+api_url = "http://localhost:8000"
+journey = ".maintainer/smoke/journey.md"
+mandatory_surfaces = ["api"]

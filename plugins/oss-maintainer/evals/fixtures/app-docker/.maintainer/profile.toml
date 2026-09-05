@@ -1,0 +1,79 @@
+schema_version = 1
+
+[project]
+name = "example-app"
+repo = "example/app"
+artifact = "app-docker"
+commands_doc = "AGENTS.md"
+
+[commands.validator]
+run = "make test lint"
+cwd = "."
+timeout = "20m"
+
+[contributing]
+conventions = "CONTRIBUTING.md"
+
+[release]
+process_doc = ".github/RELEASE_PROCESS.md"
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+distribution_trigger = "gh release create"
+publish_workflow = ".github/workflows/build-and-release.yml"
+latest_promotion = "publication promotes latest"
+
+[release.gates]
+mandatory = ["validator", "image-gate", "bucket-c", "notes-approved"]
+optional = ["security-alerts"]
+merge_own_prs = "ask-once-per-session"
+
+[artifacts.docker]
+registries = ["example/app"]
+variants = [""]
+platforms = ["amd64", "arm64"]
+dev_tag = "dev"
+gate = "make release-test TAG=<ver> OLD_TAG=<prev>"
+identity = "manifest-digest"
+
+[labels]
+needs_triage = "needs-triage"
+needs_design = "needs-design"
+needs_vision = "needs-vision"
+awaiting_demand = "awaiting-demand"
+ready = "ready"
+released = "released"
+bug = "bug"
+
+[triage]
+preset = "maturity-ladder"
+assignable = ["close", "needs-design", "ready"]
+extra_states = { needs-info = "waiting for the reporter" }
+rules = ".maintainer/triage.md"
+batch_approval = "one-at-a-time"
+
+[review]
+docs = ["AGENTS.md", "VISION.md", "docs/decisions"]
+reviewers = ["example-reviewer"]
+
+[discussions]
+categories = { ideas = "DIC_example_ideas", feedback = "DIC_example_feedback" }
+regenerate = "gh api graphql -f query='{ repository(owner: \"example\", name: \"app\") { discussionCategories(first: 20) { nodes { id name } } } }'"
+public_anchors = ["VISION.md", "docs/decisions"]
+never_cite = [".tmp-context/"]
+graduation = "pull"
+close_on = ["answer", "graduated-work-landed"]
+
+[smoke]
+api_url = "http://localhost:5055"
+frontend_url = "http://localhost:3000"
+journey = ".maintainer/smoke/journey.md"
+mandatory_surfaces = ["api", "ui"]
+report_path = ".maintainer/state/smoke-report.md"
+
+[comms]
+owner_language = "pt-BR"
+public_language = "en"
+agent_attribution = "none"
+
+[channels]
+announce = ["discord"]

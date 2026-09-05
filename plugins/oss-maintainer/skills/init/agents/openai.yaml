@@ -1,0 +1,6 @@
+interface:
+  display_name: "Init maintainer profile"
+  short_description: "Bootstrap, validate and upgrade the .maintainer/ profile of a repository"
+  default_prompt: "Use $init to prepare this repository for the oss-maintainer workflows and report what is ready."
+policy:
+  allow_implicit_invocation: false

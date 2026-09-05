@@ -1,0 +1,8 @@
+[release.gates]
+mandatory = []
+
+[smoke]
+api_url = "http://localhost:9999"
+
+[upstreams]
+example-lib = "../example-lib"
