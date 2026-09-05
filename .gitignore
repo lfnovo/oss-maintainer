@@ -1,2 +1,5 @@
 .claude/settings.local.json
 .DS_Store
+__pycache__/
+.pytest_cache/
+plugins/*/evals/results/

@@ -1,6 +1,0 @@
-{
-  "name": "on-maintainer",
-  "version": "0.1.0",
-  "description": "Maintainer tooling for Open Notebook: release orchestration, GitHub Discussions facilitation, and the end-to-end smoke gate.",
-  "skills": "./skills/"
-}

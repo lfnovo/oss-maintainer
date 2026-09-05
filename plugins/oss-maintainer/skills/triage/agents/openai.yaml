@@ -1,0 +1,6 @@
+interface:
+  display_name: "Triage issues"
+  short_description: "Classify open issues into close, needs-design or ready, one confirmed verdict at a time"
+  default_prompt: "Use $triage to triage the open issues of this repository."
+policy:
+  allow_implicit_invocation: false

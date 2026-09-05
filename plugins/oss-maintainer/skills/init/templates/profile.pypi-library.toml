@@ -1,0 +1,64 @@
+# .maintainer/profile.toml — profile for the oss-maintainer plugin (schema v1)
+# Every path is relative to the repository root. Values marked TODO block the capability
+# that needs them; values starting with "CONFIRM:" are detected proposals awaiting confirmation.
+schema_version = 1
+
+[project]
+name = "TODO project name"
+repo = "TODO owner/name"
+artifact = "pypi-library"
+commands_doc = "AGENTS.md"
+
+[commands.validator]
+run = "TODO e.g. uv run pytest -q && ruff check ."
+cwd = "."
+timeout = "15m"
+
+[contributing]
+conventions = "CONTRIBUTING.md"
+
+[release]
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+lock_command = "uv sync"
+distribution_trigger = "TODO the first action that can start public distribution; for a tag-push pipeline this is the command that pushes the tag"
+publish_workflow = "TODO .github/workflows/publish.yml"
+consumer_surfaces = ["public exports"]      # what a breaking change can break: add cli flags, mcp tools, config keys
+
+[release.gates]
+mandatory = ["validator", "package-gate", "bucket-c", "notes-approved"]
+optional = ["security-alerts"]
+not_gates = []                              # checks that produce signal but never block, e.g. ["mypy"]
+merge_own_prs = "ask-once-per-session"
+
+[artifacts.pypi]
+package = "TODO distribution name on PyPI"
+gate = "rm -rf dist && uv build && uv run --isolated --no-project --with dist/*.whl python -c 'import TODO_module'"
+surfaces = ["library"]                      # library | cli | mcp
+extras = []
+identity = "sha256"
+
+[labels]
+needs_triage = "needs-triage"
+needs_design = "needs-design"
+needs_vision = "needs-vision"
+awaiting_demand = "awaiting-demand"
+ready = "ready"
+released = "released"
+bug = "bug"
+
+[triage]
+preset = "maturity-ladder"
+assignable = ["close", "needs-design", "ready"]
+extra_states = {}
+rules = ".maintainer/triage.md"
+batch_approval = "one-at-a-time"
+
+[review]
+docs = ["AGENTS.md"]
+reviewers = []
+
+[comms]
+owner_language = "en"
+public_language = "en"
+agent_attribution = "none"

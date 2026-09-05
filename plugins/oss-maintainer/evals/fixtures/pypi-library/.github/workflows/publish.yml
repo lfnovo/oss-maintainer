@@ -1,0 +1,12 @@
+name: Publish
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: uv build
+      - run: uv publish --token "$PYPI_TOKEN"

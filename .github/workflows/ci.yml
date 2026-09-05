@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Tests and structural validation (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install test dependencies
+        run: python -m pip install --quiet pytest
+      - name: Deterministic tests
+        run: python -m pytest -q
+      - name: Version agreement across manifests and catalogs
+        run: python scripts/bump.py --check
+      - name: Agent Smith validator
+        run: |
+          git clone --quiet --depth 1 https://github.com/supernova-labs/agent-smith.git /tmp/agent-smith
+          python /tmp/agent-smith/agent-smith/skills/agent-smith/scripts/validate_repository.py .
+      - name: No repository-specific values inside the engine
+        run: |
+          if grep -rn -E "5055|lfnovo/open|DIC_kwDO|open_notebook" plugins/oss-maintainer/skills plugins/oss-maintainer/agents; then
+            echo "Repository-specific values found inside the engine; move them to a profile." >&2
+            exit 1
+          fi
+
+  claude-validate:
+    name: claude plugin validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Validate marketplace, plugin, skills and agents
+        run: |
+          claude plugin validate .
+          claude plugin validate plugins/oss-maintainer
+          claude plugin validate plugins/oss-maintainer/skills
+          claude plugin validate plugins/oss-maintainer/agents

@@ -1,0 +1,83 @@
+# .maintainer/profile.toml — profile for the oss-maintainer plugin (schema v1)
+# Every path is relative to the repository root. Values marked TODO block the capability
+# that needs them; values starting with "CONFIRM:" are detected proposals awaiting confirmation.
+schema_version = 1
+
+[project]
+name = "TODO project name"
+repo = "TODO owner/name"
+artifact = "app-docker"                     # app-docker | pypi-library | npm-package | custom | unknown
+commands_doc = "AGENTS.md"                  # where the canonical commands are documented
+
+[commands.validator]                        # invoking a canonical target is a reference, not a copy
+run = "TODO e.g. make test lint"
+cwd = "."
+timeout = "20m"
+
+[contributing]
+conventions = "CONTRIBUTING.md"             # PR, branch and commit conventions the skills follow
+
+[release]
+process_doc = "TODO path of the human release process document, or remove this line"
+changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml"]
+distribution_trigger = "TODO the first action that can start public distribution, e.g. gh release create"
+publish_workflow = "TODO .github/workflows/<publish workflow>.yml, or remove this line"
+latest_promotion = "TODO how the rolling tag moves, e.g. publication promotes latest"
+
+[release.gates]
+mandatory = ["validator", "image-gate", "bucket-c", "notes-approved"]
+optional = ["security-alerts"]
+merge_own_prs = "ask-once-per-session"      # ask-once-per-session | always-ask | never
+
+[artifacts.docker]
+registries = ["TODO registry/image"]
+variants = [""]
+platforms = ["amd64", "arm64"]
+dev_tag = "TODO rolling tag testers use, e.g. dev"
+gate = "TODO the fresh + upgrade image gate command, e.g. make release-test TAG=<ver> OLD_TAG=<prev>"
+identity = "manifest-digest"
+
+[labels]                                    # canonical -> real
+needs_triage = "needs-triage"
+needs_design = "needs-design"
+needs_vision = "needs-vision"
+awaiting_demand = "awaiting-demand"
+ready = "ready"
+released = "released"
+bug = "bug"
+
+[triage]
+preset = "maturity-ladder"
+assignable = ["close", "needs-design", "ready"]
+extra_states = {}
+rules = ".maintainer/triage.md"
+batch_approval = "one-at-a-time"            # one-at-a-time | allowed
+
+[review]
+docs = ["AGENTS.md"]                        # documents a review judges against; add architecture and vision docs
+reviewers = []                              # AI reviewers already on PRs, e.g. ["cubic", "coderabbit"]
+
+# Remove the [discussions] table when the repository does not use GitHub Discussions.
+[discussions]
+categories = { ideas = "TODO GraphQL id" }
+regenerate = "gh api graphql -f query='{ repository(owner: \"OWNER\", name: \"NAME\") { discussionCategories(first: 20) { nodes { id name } } } }'"
+public_anchors = []
+never_cite = []
+graduation = "pull"                         # pull: an Issue is born when someone will build it
+close_on = ["answer", "graduated-work-landed"]
+
+[smoke]
+api_url = "TODO e.g. http://localhost:8000"
+frontend_url = "TODO e.g. http://localhost:3000, or remove this line"
+journey = ".maintainer/smoke/journey.md"
+mandatory_surfaces = ["api", "ui"]          # a mandatory surface that cannot run blocks GO
+report_path = ".maintainer/state/smoke-report.md"
+
+[comms]
+owner_language = "en"
+public_language = "en"
+agent_attribution = "none"                  # none | disclaimer
+
+[channels]
+announce = []                               # texts are delivered to the owner, never posted by a skill
