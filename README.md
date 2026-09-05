@@ -1,44 +1,49 @@
-# open-notebook-mgmt
+# oss-maintainer
 
-Plugin marketplace with maintainer tooling for
-[Open Notebook](https://github.com/lfnovo/open-notebook). Skills are written
-once and shared by Claude Code and Codex; each harness gets its own native
-manifest.
+Maintenance workflows for open-source maintainers, as a plugin for Claude Code and Codex.
 
-## Plugins
+`oss-maintainer` turns a project's own practices into assisted maintenance workflows. It prepares decisions with evidence, executes the actions the maintainer authorizes, and verifies the results, while preserving the policies and tools the community already uses. The plugin is the engine; each repository carries its profile in a `.maintainer/` directory, so the context, criteria and procedures of triage, review, release and community facilitation stop being rebuilt in every session.
 
-### `on-maintainer`
+The design is documented in [VISION.md](VISION.md); the market research that informed it is in [research/](research/oss-maintainer-landscape.md).
 
-| Component | Type | What it does |
+## Status
+
+Version 0.1.0 is under construction on a single branch. Skills:
+
+| Skill | Purpose | Status |
 |---|---|---|
-| `release` | skill | Orchestrates a release: changelog audit, risk-based A/B/C test matrix, Docker image gate (fresh + upgrade), fix loop via PRs, cut, publication with credits, retro. Human gates in `references/gates.md`. |
-| `process-discussions` | skill | Facilitates the GitHub Discussions queue: queue map, decomposition into needs, claim verification in code, outcome proposal, draft replies, graduation to Issues — one decision at a time, owner approves every post. |
-| `smoke-e2e` | skill | Full end-to-end happy path (notebook → sources → chat → ask → transform → podcast → search → cleanup) via API, then UI verification with Playwright. Ends with GO / NO-GO. |
-| `smoke-e2e` | agent (Claude only) | Subagent that preloads the `smoke-e2e` skill so the release flow can delegate the gate. Codex has no plugin-bundled agents; run the skill directly there. |
+| `init` | Bootstrap and validate `.maintainer/`, report readiness per capability | planned |
+| `triage` | Classify open issues into the project's outcomes, one confirmed verdict at a time | planned |
+| `review-pr` | Review a pull request against the project's own rules; the maintainer decides what to post | planned |
+| `release` | Orchestrate a release behind human gates (`app-docker` and `pypi-library` archetypes) | being generalised |
+| `process-discussions` | Facilitate the GitHub Discussions queue; every reply approved before posting | being generalised |
+| `smoke-e2e` | Run the product journey on a running instance and give a GO / NO-GO verdict | being generalised |
 
-All three skills assume the working directory is a checkout of
-`lfnovo/open-notebook` (they call `make`, `gh`, `uv`, `npm` and read
-`.github/RELEASE_PROCESS.md` from that repo).
+`smoke-e2e` also ships as a Claude Code subagent so `release` can delegate the gate. Codex runs the skill directly.
 
 ## Install
 
 Claude Code:
 
 ```
-/plugin marketplace add lfnovo/open-notebook-mgmt
-/plugin install on-maintainer@open-notebook-mgmt
+/plugin marketplace add lfnovo/oss-maintainer
+/plugin install oss-maintainer@oss-maintainer
 ```
 
 Codex:
 
 ```bash
-codex plugin marketplace add lfnovo/open-notebook-mgmt
-codex plugin add on-maintainer@open-notebook-mgmt
+codex plugin marketplace add lfnovo/oss-maintainer
+codex plugin add oss-maintainer@oss-maintainer
 ```
 
-Skills are then available as `/on-maintainer:release`,
-`/on-maintainer:process-discussions` and `/on-maintainer:smoke-e2e` in Claude
-Code, and by name in Codex.
+Skills are invoked as `/oss-maintainer:<skill>` in Claude Code and as `$<skill>` in Codex. Every skill that changes public state runs only on explicit invocation.
+
+## Using it in a repository
+
+Run `init` inside a checkout. It reads the `Makefile`, the workflows, `AGENTS.md`, the changelog and the package manifests, proposes a `.maintainer/` profile with `TODO` markers for what it could not derive, and reports which capabilities are ready. Skills that only read (for example `review-pr`) work without a profile; anything that mutates public state requires one.
+
+The profile format is specified in `plugins/oss-maintainer/skills/init/references/profile-schema.md` (see VISION.md section 4 for the rationale).
 
 ## Layout
 
@@ -46,20 +51,29 @@ Code, and by name in Codex.
 .claude-plugin/marketplace.json     Claude Code catalog
 .agents/plugins/marketplace.json    Codex catalog
 .agent-smith/index.json             component graph, adapters, accepted gaps
-plugins/on-maintainer/
+plugins/oss-maintainer/
   .claude-plugin/plugin.json        Claude manifest
   .codex-plugin/plugin.json         Codex manifest (skills: ./skills/)
-  skills/<name>/SKILL.md            canonical skills (shared)
+  skills/<name>/SKILL.md            canonical skills, shared by both harnesses
   agents/smoke-e2e.md               Claude subagent adapter
+  evals/                            fixtures, eval cases, Codex parity checklist
+scripts/bump.py                     the only way the version changes (four files)
+scripts/rebuild_index.py            regenerates the agent-smith index from disk
+tests/                              deterministic tests (pytest, Python 3.11+)
 ```
 
 ## Maintaining
 
-Edit skills under `plugins/on-maintainer/skills/` only; there are no copies
-to keep in sync. Bump `version` in both plugin manifests and both catalogs
-together. Validate with the agent-smith plugin:
+- Edit skills under `plugins/oss-maintainer/skills/` only; there are no copies to keep in sync.
+- Bump the version with `python3 scripts/bump.py <version>`; CI fails when the four version fields disagree.
+- Rebuild the index with `python3 scripts/rebuild_index.py` after adding or removing components.
+- Validate: `python3 -m pytest`, `claude plugin validate .`, and the agent-smith validator (`validate_repository.py .`).
+- Releases are tagged `oss-maintainer--v<version>` with `claude plugin tag --push`, so marketplaces can pin by `ref`.
 
-```bash
-python3 <agent-smith>/scripts/validate_repository.py .
-claude plugin validate .
-```
+## Boundary with `snl-pm`
+
+`oss-maintainer` covers intake (`triage`), review (`review-pr`), release, community (`process-discussions`) and the smoke gate. The Supernova `snl-pm` plugin keeps design, delivery and the Linear platform. `oss-maintainer` depends on no other plugin.
+
+## License
+
+MIT.

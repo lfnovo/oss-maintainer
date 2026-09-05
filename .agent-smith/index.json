@@ -1,54 +1,92 @@
 {
   "schemaVersion": "2.0",
   "topology": "marketplace",
-  "targets": ["claude", "codex"],
+  "targets": [
+    "claude",
+    "codex"
+  ],
   "canonicalPaths": {
-    "skills": "plugins/on-maintainer/skills",
+    "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T15:00:00Z",
+  "lastUpdated": "2026-09-05T19:12:53Z",
   "components": [
-    {
-      "id": "skill:release",
-      "type": "skill",
-      "name": "release",
-      "plugin": "on-maintainer",
-      "canonicalPath": "plugins/on-maintainer/skills/release/SKILL.md",
-      "description": "Orchestrate an Open Notebook release: changelog audit, risk-based test matrix, image gate, fix loop, cut, publication, retro"
-    },
     {
       "id": "skill:process-discussions",
       "type": "skill",
       "name": "process-discussions",
-      "plugin": "on-maintainer",
-      "canonicalPath": "plugins/on-maintainer/skills/process-discussions/SKILL.md",
-      "description": "Facilitate the GitHub Discussions queue: qualify Ideas, decompose needs, verify claims, propose outcomes, draft replies, graduate to Issues"
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/process-discussions/SKILL.md",
+      "description": "Facilitate Open Notebook's GitHub Discussions queue — qualify Ideas, decompose them into distinct needs, verify claims in code, propose outcomes (exploring / graduated / parked / combined), draft replies, and graduate small gaps into ready Issues. Use when processing, triaging, or responding to Discussions, or when the user says \"process discussions\" / \"vamos fazer as discussions\"."
+    },
+    {
+      "id": "skill:release",
+      "type": "skill",
+      "name": "release",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/release/SKILL.md",
+      "description": "Orchestrate an Open Notebook release — changelog audit, risk-based A/B/C test matrix, Docker image gate (fresh + upgrade), fix loop via PRs, cut, publication with credits, retro. Use when preparing, testing, cutting or publishing a release."
     },
     {
       "id": "skill:smoke-e2e",
       "type": "skill",
       "name": "smoke-e2e",
-      "plugin": "on-maintainer",
-      "canonicalPath": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md",
-      "description": "Full end-to-end happy path via API plus Playwright UI verification; GO / NO-GO release gate"
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md",
+      "description": "Run Open Notebook's full end-to-end happy path (notebook → sources → chat → ask → transformation → podcast → search → cleanup) against a running dev stack via the API, then verify the UI with Playwright, and report GO / NO-GO. Use when smoke-testing a local stack, gating a release, or when asked to run the smoke test."
     },
     {
       "id": "agent:smoke-e2e",
       "type": "agent",
       "name": "smoke-e2e",
-      "plugin": "on-maintainer",
-      "canonicalPath": "plugins/on-maintainer/agents/smoke-e2e.md",
-      "description": "Subagent adapter that preloads and executes the smoke-e2e skill"
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/agents/smoke-e2e.md",
+      "description": "End-to-end smoke test for Open Notebook release preparation. Runs the full happy path (notebook → sources → chat → ask → transform → podcast → search → cleanup) via API against a running dev stack, then verifies the UI with Playwright, and reports GO / NO-GO. Last barrier before a release."
     }
   ],
   "adapters": [
-    { "componentId": "skill:release", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/release/SKILL.md" },
-    { "componentId": "skill:release", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/release/SKILL.md" },
-    { "componentId": "skill:process-discussions", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/process-discussions/SKILL.md" },
-    { "componentId": "skill:process-discussions", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/process-discussions/SKILL.md" },
-    { "componentId": "skill:smoke-e2e", "harness": "claude", "status": "shared", "path": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md" },
-    { "componentId": "skill:smoke-e2e", "harness": "codex", "status": "shared", "path": "plugins/on-maintainer/skills/smoke-e2e/SKILL.md" },
-    { "componentId": "agent:smoke-e2e", "harness": "claude", "status": "native", "path": "plugins/on-maintainer/agents/smoke-e2e.md", "sourcePath": "plugins/on-maintainer/skills/smoke-e2e" }
+    {
+      "componentId": "skill:process-discussions",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/process-discussions/SKILL.md"
+    },
+    {
+      "componentId": "skill:process-discussions",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/process-discussions/SKILL.md"
+    },
+    {
+      "componentId": "skill:release",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/release/SKILL.md"
+    },
+    {
+      "componentId": "skill:release",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/release/SKILL.md"
+    },
+    {
+      "componentId": "skill:smoke-e2e",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md"
+    },
+    {
+      "componentId": "skill:smoke-e2e",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/smoke-e2e/SKILL.md"
+    },
+    {
+      "componentId": "agent:smoke-e2e",
+      "harness": "claude",
+      "status": "native",
+      "path": "plugins/oss-maintainer/agents/smoke-e2e.md"
+    }
   ],
   "gaps": [
     {
@@ -64,14 +102,24 @@
       "harness": "claude",
       "manifestPath": ".claude-plugin/marketplace.json",
       "plugins": [
-        { "name": "on-maintainer", "sourceType": "local", "path": "plugins/on-maintainer", "managed": true }
+        {
+          "name": "oss-maintainer",
+          "sourceType": "local",
+          "path": "plugins/oss-maintainer",
+          "managed": true
+        }
       ]
     },
     {
       "harness": "codex",
       "manifestPath": ".agents/plugins/marketplace.json",
       "plugins": [
-        { "name": "on-maintainer", "sourceType": "local", "path": "plugins/on-maintainer", "managed": true }
+        {
+          "name": "oss-maintainer",
+          "sourceType": "local",
+          "path": "plugins/oss-maintainer",
+          "managed": true
+        }
       ]
     }
   ]

@@ -1,12 +1,12 @@
 {
-  "name": "open-notebook-mgmt",
-  "description": "Maintainer plugins for Open Notebook (lfnovo/open-notebook)",
+  "name": "oss-maintainer",
+  "description": "Maintenance workflows for open-source maintainers, for Claude Code and Codex",
   "plugins": [
     {
-      "name": "on-maintainer",
+      "name": "oss-maintainer",
       "source": {
         "source": "local",
-        "path": "./plugins/on-maintainer"
+        "path": "./plugins/oss-maintainer"
       },
       "policy": {
         "installation": "AVAILABLE",

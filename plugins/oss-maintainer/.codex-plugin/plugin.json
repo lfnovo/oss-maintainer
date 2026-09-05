@@ -1,0 +1,6 @@
+{
+  "name": "oss-maintainer",
+  "version": "0.1.0",
+  "description": "Maintenance workflows for open-source maintainers: issue triage, PR review, release orchestration behind human gates, Discussions facilitation and a smoke gate, driven by a per-repository .maintainer/ profile.",
+  "skills": "./skills/"
+}
