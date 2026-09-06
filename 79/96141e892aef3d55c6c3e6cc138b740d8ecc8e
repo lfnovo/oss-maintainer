@@ -1,0 +1,23 @@
+plugins/oss-maintainer/evals/README.md
+  s_faee0f1d49c94e::t_7cf22b74e887ee 8-10
+plugins/oss-maintainer/evals/parity/checklist.md
+  s_faee0f1d49c94e::t_8fc30c830be0ce 14,16,28
+plugins/oss-maintainer/skills/smoke-e2e/SKILL.md
+  s_faee0f1d49c94e::t_fb5cad1a2e7e96 76-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "7996141e892aef3d55c6c3e6cc138b740d8ecc8e",
+  "prompts": {},
+  "sessions": {
+    "s_faee0f1d49c94e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69ad6050-96d5-4a41-ae6b-66709fc7be9b",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
