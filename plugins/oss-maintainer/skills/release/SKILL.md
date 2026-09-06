@@ -32,6 +32,10 @@ Paths such as `references/gates.md` are relative to the directory containing thi
 3. Read the latest run record for this repository (`references/run-record.md`). A record for
    the same version means a resumption: consult the external systems, keep what they confirm,
    and continue from the first missing step.
+4. Resolve once which interpreter runs the bundled scripts: they need Python 3.11 or newer,
+   and the project's own environment may be older. Pick a working one (`python3.12`,
+   `uv run --python 3.12 python`, or similar) at the start, note it in the run record, and
+   reuse it for the whole run instead of rediscovering it at every invocation.
 
 Ground rules for the whole run:
 

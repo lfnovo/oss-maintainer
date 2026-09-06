@@ -26,11 +26,16 @@ is minor, not major; fixes and packaging are patch.
 `[artifacts.pypi].gate` proves that the artifact that will ship works for every declared
 surface, from a clean environment, with no repository on the path:
 
-1. `rm -rf dist && uv build` (or the project's builder); the wheel's declared version equals
-   `[release].version_files`.
-2. **Wheel content inspection**: list the wheel and confirm every non-Python asset the runtime
-   needs is inside (templates, data files, prompts). Any new non-`.py` asset is a packaging
-   risk until confirmed inside.
+1. **Build from the candidate commit, not from the working tree.** The recipe below checks
+   out `HEAD` into a temporary worktree and builds there, so an untracked or modified file in
+   the maintainer's checkout cannot enter the archive; anything `git status` lists is printed
+   as excluded. An empty `dist/` is not enough. The wheel's declared version equals
+   `[release].version_files`. The artifacts are copied back to `dist/` for digests and reuse.
+2. **Archive content inspection**: list the wheel and the sdist. Every non-Python asset the
+   runtime needs must be inside (templates, data files, prompts); any new non-`.py` asset is a
+   packaging risk until confirmed inside. Every sdist entry must be a tracked file of the
+   candidate or a file the builder generates (`PKG-INFO`); anything else is a leak and fails
+   the gate.
 3. **Clean-room install**: use the recipe below, with the project's module name.
    A bare install without extras must import: optional dependencies stay guarded.
 4. **Surface smokes** per `[artifacts.pypi].surfaces`: `library` (import and one call),
@@ -44,17 +49,21 @@ The portable gate recipe below also appears in the README profile example. Repla
 `example_lib` with the import module, which may differ from the distribution name.
 
 ```bash
-rm -rf dist && uv build &&
-wheel="$(python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
+repo="$(git rev-parse --show-toplevel)" && src="$(mktemp -d)" && check_dir="$(mktemp -d)" &&
+git -C "$repo" status --porcelain | sed 's/^/excluded from the build (not in HEAD): /' &&
+git -C "$repo" worktree add --detach --quiet "$src" HEAD &&
 (
-  check_dir="$(mktemp -d)" &&
-  trap 'rm -rf "$check_dir"' EXIT &&
+  trap 'git -C "$repo" worktree remove --force "$src"; rm -rf "$check_dir"' EXIT &&
+  cd "$src" && uv build && rm -rf "$repo/dist" && cp -R dist "$repo/dist" &&
+  wheel="$(cd "$repo" && python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
   cd "$check_dir" &&
   uv run --isolated --no-project --with "$wheel" python -I -c 'import example_lib; print(example_lib.__file__)'
 )
 ```
 
-`uv --isolated --no-project` isolates environment selection, not Python's import path.
+The worktree mirrors what a CI checkout of the same commit builds; `git archive` would not,
+because it honours `export-ignore`. `uv --isolated --no-project` isolates environment
+selection, not Python's import path.
 Changing directory and `python -I` remove checkout and inherited `PYTHONPATH` assistance.
 Inspect the printed module origin: it must belong to the installed environment, never the
 checkout. Apply the same isolation to CLI/MCP probes and runtime assets; editable installs
