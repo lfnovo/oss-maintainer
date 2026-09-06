@@ -3,7 +3,7 @@
 | Field | Use | Without it |
 |---|---|---|
 | `[labels]` | canonical state → real label name | the canonical names |
-| `[triage].preset` | state policy | `maturity-ladder` |
+| `[triage].preset` | `maturity-ladder` or `custom` (rules and explicit assignable states required) | `maturity-ladder` |
 | `[triage].assignable` | outcomes triage may assign | close, `needs-design`, `ready` |
 | `[triage].extra_states` | project-specific states and meanings | none |
 | `[triage].rules` | repository triage rules | `.maintainer/triage.md` when present; offered when missing |

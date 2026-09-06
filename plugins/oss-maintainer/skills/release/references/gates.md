@@ -1,67 +1,61 @@
-# Gates — what needs a human, what does not
+# Gates and authorization
 
-When in doubt, ask. A blocked action is feedback, not an obstacle to route around.
+Follow `project-agreement.md`. Investigate, prepare and verify within the maintainer's
+existing authorization. Prepare a concrete decision before requesting missing authority;
+continue independent work. A denied action is not permission to route around it.
 
-## Autonomous, once the run is underway
+## Scope by action
 
-- Run any test, build, probe or analysis; start and stop the local services the runbook
-  declares.
-- Create branches and commits; open PRs that follow the repository's conventions.
-- Delegate to subagents where the harness supports them: the smoke journey, investigations,
-  focused fixes, the changelog audit.
-- Build the artifact locally and run its gate against it.
-- Watch CI and the repository's reviewers.
-- Write the run record, reports and evidence under `.maintainer/state/`.
+| Kind | Binding and conditions | When another decision is needed |
+|---|---|---|
+| Merge | repository/run or explicitly limited session; qualifying PRs, required checks and review | stated conditions fail, scope/session expires, or integration can publish |
+| Tests | selected plan, providers/resources, permitted executions and budget | plan/resources change, repeat exceeds count/cost, or permission expires |
+| Notes | exact approved text and relevant factual context | text or relevant facts change |
+| Publication | complete candidate identity and exact distribution action | commit, version, tested artifact identity or trigger changes |
 
-## Requires an explicit answer in this session
+Use `run_record.py authorize --kind ...` and record conditions, resources and stated limits.
+Publication remains the default kind for compatibility. `permissions` reports mechanically
+valid grants; it cannot judge natural-language conditions. Before using a grant, verify the
+actual action, current project policy, resources and conditions. For bounded grants reserve
+usage with `consume` before execution, choosing a documented unit (runs or budget units).
+A failed attempt still consumes its reserved allowance; never silently refund a paid test.
+Record arbitrary monetary limits in conditions as well as integer budget units when useful.
+A grant with no numeric limit is not proof of unlimited paid use: apply its written scope.
 
-| Action | Why |
-|---|---|
-| Merging PRs you authored | two-party review; ask once per session when `merge_own_prs = "ask-once-per-session"` and honour the answer |
-| Approving the release notes and announcements | public text |
-| The distribution trigger (phase 10) | the point of no return; for a tag-push pipeline, the tag push itself |
-| RC staging to a registry | separate prerelease reference, candidate digest and explicit staging scope; never a final version or rolling tag |
-| Anything that promotes a rolling channel (`latest`) | users receive it immediately |
-| Creating issues | external artifacts the owner may not want |
-| Mass-labeling issues | bulk modification of shared state |
-| Paid or manual bucket C runs (real credentials, real providers) | cost and access |
-| Touching the owner's data | only ever on copies; never mount or mutate originals |
-| Lint, type or cleanup work beyond the release diff | a separate task with its own PR |
-| Changing profile policies during a run | the run's authorizations were given under the current profile |
+`ask-once-per-session` retains its literal lifetime. For continuing work, the maintainer may
+instead give an `ask-once-per-run` grant. Do not convert an old session approval into a run
+approval. Legacy untyped grants remain candidate-bound and cannot prove merge/test authority.
+The harness may independently require permission; the plugin cannot suppress those prompts.
 
-## Never
+## Work that can proceed
 
-- Push to the default branch.
-- Publish, push a tag or dispatch a publishing workflow to work around a blocked step.
-- Mark a phase complete with a failing or `not-run` mandatory check. GO with known issues is
-  worse than a NO-GO that catches problems before users do.
-- Reuse or overwrite a published version; bump and re-cut.
-- Hand-craft a tag that differs from the version files.
-- Skip the artifact gate because the tests passed: source tests do not prove the shipped
-  artifact works.
-- Accept a local overlay that changes a gate.
+Within the authorized scope, run local tests/builds, prepare changes through the agreed
+contribution process, inspect CI and write local evidence. Paid services, owner data and
+external messages need the actual scope authorized. A general request to investigate or run
+local tests is not permission to spend money or speak for the project. Reviewed batches can
+be approved together where project policy allows them.
 
-## Authorization scope
+## Re-test policy
 
-An authorization names the actions it covers, the candidate it applies to (commit, digests,
-approved text) and the conditions that end it: a new commit on the candidate, a rebuilt
-artifact, a changed profile policy. When any of those happens, the affected checks return to
-`not-run` and the authorization is asked again. "Merge when clean", given once per session,
-covers PRs opened during the run; it does not cover the distribution trigger.
+Run the canonical validator after fixes. Run other mandatory checks as required by the
+project, and selected additional probes when their dependencies change. Source checks bind
+to a commit; artifact checks bind to identified bytes. Adding artifact metadata does not
+invalidate unrelated source checks. A changed source commit invalidates source evidence;
+rebuilding bytes invalidates evidence for the old artifact. The final artifact gate covers
+the exact candidate. Missing dependency information requires conservative revalidation.
 
-## Re-test policy after each fix merge
+## Publication GO
 
-- Cheap suite (validator and the other declared commands): always.
-- Artifact gate and smoke journey: when the fix touches what they cover.
-- The owner's manual checks: only for what the fix touched.
-- The final artifact gate always runs on the exact candidate that will be distributed.
+GO requires every mandatory pre-publication check passed with evidence, required manual work
+signed off, no open release regression, and alerts resolved or accepted under project policy.
+A required unrun check remains NO-GO. Risk acceptance records a decision, never a fabricated
+pass. A local preference cannot waive shared requirements.
 
-## GO / NO-GO
+GO precedes the first action that can distribute, including a publishing merge or direct
+push. Separately authorized RC staging uses an immutable prerelease reference, not the final
+version or a rolling channel. Source tests do not substitute for the artifact gate. Never
+reuse a published version or promote a channel without its scoped authorization.
 
-A release is GO when every mandatory pre-publication check is `passed`, pre-publication
-bucket C is signed off, no release
-regression is open, security alerts are resolved or explicitly accepted, and the candidate
-has not changed since the checks ran. Every other state is NO-GO with a stated reason.
-
-Registry-dependent checks run after publication and do not feed its prerequisite GO. A
-publishing merge follows `candidate-and-publication.md`, including merges in the fix loop.
+Post-publication registry checks are required delivery work, not prerequisites to the
+publication they verify. Completion is separate from GO and from optional retrospective work;
+follow `run-record.md`. Creating feedback issues requires authorization of the actual text.

@@ -25,8 +25,10 @@ Paths such as `references/ladder-preset.md` are relative to the directory contai
    when `[triage].preset` is `maturity-ladder` (the default), extended by
    `[triage].extra_states`. Read the repository's own rules in `[triage].rules`
    (`.maintainer/triage.md`; a root `TRIAGE.md` is the older convention), and its
-   contribution guide. Repository rules refine the preset; when they contradict it, point the
-   conflict out and ask.
+   contribution guide. With `preset = "custom"`, use the repository's rules and explicit
+   assignable states; extra_states supplies their meanings. Presets are defaults, not universal
+   governance. If explicitly adopted policies conflict, show the conflict and resolve it with
+   the authorized maintainer; do not silently weaken a requirement.
 3. Interact in `[comms].owner_language`; issue comments and rewrites are written in
    `[comms].public_language`.
 

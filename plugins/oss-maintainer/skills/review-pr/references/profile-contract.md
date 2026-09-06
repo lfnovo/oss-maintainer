@@ -12,3 +12,6 @@ Read-only mode is the normal mode: this skill needs no profile to review.
 
 Posting a review, fixing on the branch and replying to a reviewer are mutations: they always
 wait for the maintainer's decision, profile or not.
+
+`[review].batch_approval` is `one-at-a-time` by default; `allowed` permits approval of a
+concrete reviewed set with every proposed text and effect visible.

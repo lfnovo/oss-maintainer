@@ -4,11 +4,21 @@ Maintenance workflows for open-source maintainers, as a plugin for Claude Code a
 
 `oss-maintainer` turns a project's own practices into assisted maintenance workflows. It prepares decisions with evidence, executes the actions the maintainer authorizes, and verifies the results, while preserving the policies and tools the community already uses. The plugin is the engine; each repository carries its profile in a `.maintainer/` directory, so the context, criteria and procedures of triage, review, release and community facilitation stop being rebuilt in every session.
 
-The design is documented in [VISION.md](VISION.md); the market research that informed it is in [research/](research/oss-maintainer-landscape.md).
+## Product philosophy
+
+The maintainer defines the project's direction and commitments. The plugin makes those choices easier to execute, verify and carry forward. Five principles guide its development:
+
+- **The process belongs to the project.** Respect its philosophy, stack, governance and strategy; offer useful defaults where needed.
+- **Autonomy operates within a clear agreement.** Carry authorized work through and ask when a new decision is needed.
+- **Trust is built on evidence.** Verify premises and delivered results; keep uncertainty and accepted risk visible.
+- **Knowledge accumulates in the project.** Preserve canonical decisions and run history so work can continue across sessions.
+- **Attention follows risk.** Match investigation, testing and coordination to the impact of the work.
+
+The plugin requires honest evidence and respect for authority, recommends maintenance practices, and lets the repository define its policies. Read [PRINCIPLES.md](PRINCIPLES.md) for that distinction and how it should adapt to different projects. [VISION.md](VISION.md) describes the product's purpose, intended experience and architectural direction; the original market research is in [research/](research/oss-maintainer-landscape.md).
 
 ## Status
 
-Version 0.1.1. Skills:
+Version 0.2.0. Skills:
 
 | Skill | Purpose | Invocation |
 |---|---|---|
@@ -46,14 +56,16 @@ Skills are invoked as `/oss-maintainer:<skill>` in Claude Code and as `$<skill>`
 
 Run `init` inside a checkout. It reads the `Makefile`, the workflows, `AGENTS.md`, the changelog and the package manifests, proposes a `.maintainer/` profile with `TODO` markers for what it could not derive, and reports which capabilities are ready. Skills that only read (for example `review-pr`) work without a profile; anything that mutates public state requires one.
 
-The profile format is documented in [docs/profile-reference.md](docs/profile-reference.md) (rationale in VISION.md section 4). Only `profile.toml` is mandatory; skills that only read work without a profile and say which policies they assumed.
+Optional canonical instruction migration is available through `init`: preview root and nested changes, resolve conflicts, then apply the reviewed plan. Ordinary adoption preserves existing instruction structure.
+
+The profile format is documented in [docs/profile-reference.md](docs/profile-reference.md), with the rationale in [VISION.md](VISION.md#a-shared-engine-and-a-repository-owned-profile). Only `profile.toml` is mandatory; skills that only read work without a profile and say which policies they assumed.
 
 ## How it works
 
 1. **Profile, not prompts.** `init` reads what the repository already declares (Makefile, workflows, `AGENTS.md`, changelog, package manifests) and proposes `.maintainer/profile.toml` with the archetype, the canonical commands, the gates and, above all, the *distribution trigger*: the first action that can start public distribution. Anything it cannot derive stays `TODO`; anything it derived but you have not confirmed stays `CONFIRM:`.
-2. **Invariants in the engine, policies in the profile.** Checking premises against the code, showing evidence, confirming before every mutation and verifying results in the external system are the same everywhere. Which states triage may assign, what closes a Discussion, which gates a release needs and which language goes public are yours, with our practice shipped as presets.
+2. **Invariants in the engine, policies in the profile.** Checking premises against the code, showing evidence, respecting authorization and verifying results in the external system are the shared guarantees. The profile declares supported project choices: triage states, Discussion outcomes, release gates and public language. Release changes can follow the repository process, require PRs or use authorized direct commits; guarantees and project choices are described in [PRINCIPLES.md](PRINCIPLES.md#what-we-require-recommend-and-leave-to-the-repository).
 3. **Human gates with scope.** Every check ends as `passed`, `failed`, `not-run` or `not-applicable`; a gate is GO only when every mandatory check passed. A GO names the candidate (commit, digests) and lapses when it changes. The distribution trigger runs only after the GO, never before, even when it is a `make tag` that pushes.
-4. **Resumable runs.** Releases and smoke runs write a record under `.maintainer/state/runs/`; a new run reads the record and the external systems, and repeats only what is missing.
+4. **Resumable runs.** Releases and smoke runs write a record under `.maintainer/state/runs/` and consult external results on resumption. Record schema 2 preserves unaffected evidence and scoped authorizations, validates command provenance and separates completed delivery from optional retrospective work. Legacy records remain readable without fabricated history.
 
 A minimal profile for a PyPI library:
 
@@ -100,6 +112,8 @@ plugins/oss-maintainer/
   agents/smoke-e2e.md               Claude subagent adapter
   evals/                            fixtures, eval cases, Codex parity checklist and runner
 docs/profile-reference.md           generated profile documentation
+PRINCIPLES.md                       product values and repository autonomy
+VISION.md                          workflow design and implementation direction
 scripts/bump.py                     the only way the version changes (four files)
 scripts/rebuild_index.py            regenerates the agent-smith index from disk
 scripts/render_docs.py              regenerates docs/profile-reference.md

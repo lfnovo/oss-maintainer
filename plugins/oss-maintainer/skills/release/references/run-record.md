@@ -1,89 +1,102 @@
 # Run record and resumption
 
-Every run writes a JSON record under `.maintainer/state/runs/` (gitignored), created and
-updated with `scripts/run_record.py`. The record is what makes a release resumable and
-auditable: what was checked, on which candidate, with what evidence, under which
-authorizations.
+Use `scripts/run_record.py` to keep JSON records under `.maintainer/state/runs/`. Record
+schema 2 separates evidence dependencies, action permissions, delivery and retrospective
+state. Profile schema remains 1. Reading schema-1 records does not write them; the next
+mutation adds the new fields while preserving historical values and `legacy_schema: 1`.
+Unknown schemas are rejected. An old GO is not inferred to prove completed delivery.
 
-## Record
+## Start with the delivery contract
 
-```json
-{
-  "schema": 1,
-  "skill": "release",
-  "id": "2026-09-05T14-02-11Z-release",
-  "started_at": "2026-09-05T14:02:11Z",
-  "finished_at": null,
-  "engine": {"plugin": "oss-maintainer", "version": "0.1.1", "resolution": "marketplace ref oss-maintainer--v0.1.1"},
-  "repo": "owner/name",
-  "candidate": {"version": "1.4.0", "commit": "abc123", "digests": {"registry/image:1.4.0": "sha256:..."}},
-  "published": {"digests": {}},
-  "superseded": [],
-  "profile_hash": "sha256 of the effective profile",
-  "overlay_diff": ["smoke.api_url"],
-  "phases": [
-    {"name": "artifact-gate", "status": "passed", "checks": [
-      {"name": "image-gate", "status": "passed", "evidence": ".maintainer/state/reports/image-gate.log"}
-    ], "authorizations": []}
-  ],
-  "commands": [{"run": "make test", "cwd": ".", "exit": 0, "log": ".maintainer/state/reports/validator.log"}],
-  "items": [],
-  "verdict": null,
-  "notes": []
-}
-```
-
-Phase names, in order: `scope`, `version`, `matrix`, `bucket-a`, `artifact-gate`,
-`bucket-c`, `fix-loop`, `cut`, `notes`, `go`, `publish`, `verify`, `announce`, `cleanup`,
-`retro`. Check statuses: `passed`, `failed`, `not-run`, `not-applicable`. Verdicts: `GO`,
-`NO-GO`, `aborted`.
-
-An authorization carries `scope`, the commit string in `candidate`, a full `identity`
-snapshot (version, commit, digests), `granted_at` and `by`. It is valid only while that
-identity equals the current candidate and it has not been revoked. Legacy commit-only
-authorizations do not prove artifact approval: revalidate and obtain a full-identity GO
-before further distribution. Never replay publication already confirmed externally.
-
-## Commands
+`new` defaults release obligations to publish, verify, announcement disposition and cleanup.
+Add all project mandatory checks with repeated `--required-check`; add extra delivery phases
+with `--required-phase`. For non-release runs explicitly name their required phases. Required
+checks must pass with evidence. Optional checks remain visible without blocking completion.
 
 ```bash
-python3 scripts/run_record.py new --root <root> --skill release --version 1.4.0 --commit abc123
-python3 scripts/run_record.py digest <record> --name wheel --value sha256:<tested>
+python3 scripts/run_record.py new --root <root> --skill release --version 1.4.0 --commit <sha> \
+    --repo owner/name --required-check validator --required-check package-gate
+```
+
+The profile hash records the shared profile and overlay bytes conservatively. On resumption,
+compare the profile hash and read the linked policies before relying on prior decisions. A
+changed policy requires a new run/agreement; keep the old record and externally confirmed
+publication history. A new record never authorizes repeating successful distribution.
+
+## Evidence and commands
+
+Every check has an ID, status, evidence reference, dependency snapshot and linked execution
+IDs. Choose `--depends-on source`, `--depends-on artifact:NAME`, or `candidate` (the conservative
+default). Repeat dependencies when the result depends on more than one. A missing artifact
+identity is rejected. Register identity and gate result atomically:
+
+```bash
+python3 scripts/run_record.py update <record> --phase bucket-a --status passed \
+    --depends-on source --check validator=passed:reports/tests.log \
+    --command 'make test=0' --cwd . --log reports/tests.log
 python3 scripts/run_record.py update <record> --phase artifact-gate --status passed \
-    --check image-gate=passed:.maintainer/state/reports/image-gate.log
-python3 scripts/run_record.py authorize <record> --scope "publish via make tag" --candidate abc123
-python3 scripts/run_record.py candidate <record> --commit def456        # invalidates checks and authorizations
-python3 scripts/run_record.py digest <record> --name wheel --value sha256:<observed> --published
-python3 scripts/run_record.py latest --root <root> --skill release [--version 1.4.0]
-python3 scripts/run_record.py pending <record>                            # phases and checks not yet passed
+    --digest wheel=sha256:<tested> --depends-on artifact:wheel \
+    --check package-gate=passed:reports/wheel.log --command 'make package-check=0'
+```
+
+`--command 'COMMAND=INTEGER_EXIT_STATUS'` splits at the last equals sign, so commands may
+contain equals signs. Repeat the option to record multiple executions. Invalid entries fail
+before any record is saved. Supply `--executed-at <ISO timestamp with timezone>` only when the
+actual execution time is known; otherwise it stays null. `at`/`recorded_at` are recording
+times, not proof of when an old command ran. Execution IDs and original records are preserved.
+
+Use `revalidate <record> --phase <phase> --evidence-id <id> --reason <reason>` for a later
+observation that an existing result still applies. It adds an event without manufacturing a
+new execution or editing its timestamp. It refuses changed dependencies. Re-run affected
+checks instead; replaced checks remain in the event history.
+
+`candidate --commit <sha> [--version V]` invalidates affected dependencies; changing source
+identity clears the old candidate's digests. `digest --name NAME --value DIGEST` enriches or
+replaces tested identity. Same-identity updates do nothing. `digest --published` records a
+registry observation separately. Never bind an artifact check to bytes it did not test.
+
+## Authorizations
+
+```bash
+python3 scripts/run_record.py authorize <record> --kind tests --phase matrix \
+    --scope 'execute the reviewed plan once' --conditions 'provider A; maximum 2 USD' \
+    --resource provider-a --limit 1
+python3 scripts/run_record.py authorize <record> --kind merge --phase fix-loop \
+    --scope 'merge qualifying fixes during this run' --conditions 'required CI and independent review passed'
+python3 scripts/run_record.py authorize <record> --kind notes --phase notes \
+    --scope 'approved notes' --subject sha256:<text-and-facts> --conditions 'exact text and facts unchanged'
+python3 scripts/run_record.py authorize <record> --kind publication --candidate <sha> \
+    --scope 'publish this candidate via make tag'
+python3 scripts/run_record.py permissions <record>
+python3 scripts/run_record.py consume <record> --authorization <id> --units 1 --reason 'reserve reviewed test execution'
+```
+
+Optional `--expires-at` and numeric `--limit` bound validity. Verify written conditions and
+actual resources before consuming. Merge/test grants survive unrelated candidate changes
+within the same agreement. Notes bind to approved text and source/version context; publication
+binds to complete identity. Legacy grants retain conservative full-candidate semantics.
+Publication authority never follows from ordinary merge or test permission.
+
+## Resume and close
+
+Read `latest --root <root> --skill release --version V` and external systems first. Reconcile
+what is published, which registries serve it and what remains unverified. Report missing
+bookkeeping separately from missing execution. `pending` lists outstanding phases/checks;
+optional retrospective work may remain pending after delivery is completed.
+
+Record each required phase with checks and evidence. `publish` and `verify` must pass;
+`announce` and `cleanup` may be not-applicable only with a recorded reason as evidence (for
+example, no channels requested or no resources created). Never silently skip required work.
+
+```bash
+python3 scripts/run_record.py update <record> --phase announce --status not-applicable \
+    --check disposition=not-applicable:'owner requested no announcement'
 python3 scripts/run_record.py finish <record> --verdict GO
 ```
 
-## Resumption
-
-1. `latest` for the same repository and version. No record: start at phase 0.
-2. Read the external systems before trusting the record: does the tag exist on the remote, is
-   the release published, which registries already serve the version, did the publish workflow
-   finish. Each answer marks the corresponding check `passed` with the external evidence.
-3. `pending` lists what remains. Continue from the first pending phase; repeat only what the
-   re-test policy requires.
-4. Publication across several registries is never assumed atomic. A run that published the
-   package but failed the image resumes at the image, with the package verified and left alone.
-5. A relevant change since the record (a new commit on the candidate, a rebuilt artifact, a
-   version change) invalidates the affected checks and their authorizations:
-   `candidate --commit <new>` or a changed candidate `digest` resets them, clears `verdict`
-   and `finished_at`, and preserves old candidate/evidence in `superseded`. The GO is asked
-   again. Same-identity updates do nothing; a version change also invalidates approval.
-6. Record distributed digests with `digest --published`, separate from the candidate tested
-   before GO. A mismatch requires verification of the distributed build, not rewriting the
-   old candidate's gate evidence.
-
-Even a run that stops before phase 0 writes a record with `verdict: aborted` and the reason,
-so the next session knows what happened.
-
-A profile-policy change requires a **new run**, even if the candidate SHA and digests stay
-the same. Compare the current effective profile hash with `profile_hash` during resumption;
-keep the old run as history, revalidate under the new policy, and obtain a new GO. Calling
-`candidate` with an unchanged identity does not invalidate policy-bound evidence. Confirm
-any completed distribution externally before considering another action; a new record does
-not authorize repeating an already successful publication.
+`finish --verdict GO` means delivery completed, not permission to publish. It refuses missing
+required obligations. `NO-GO` ends a blocked attempt; `aborted` records cancellation. Publish
+approval is recorded with `authorize`. Complete delivery before the optional retro; retro
+updates do not reopen publication. A completed run retains its delivery outcome while its
+retrospective remains pending. Do not infer missing checks, execution times or approval from
+old records; reconcile them with actual external evidence.

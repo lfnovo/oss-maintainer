@@ -16,7 +16,7 @@ Scenario material for the `oss-maintainer` plugin.
   ```
 
   The command is early access; when unavailable, record `not-run` and rely on the
-  deterministic tests plus the manual dry runs described in `VISION.md` section 5.1.
+  deterministic tests plus the manual dry runs in `parity/checklist.md`.
 - `parity/`: the Codex parity checklist and its runner.
 - `results/`: gitignored output of eval runs.
 
@@ -38,3 +38,9 @@ attempts on 2026-09-05 returned the account session limit (HTTP 429) before infe
 these behavioral runs are **not-run**, not passed. The deterministic tests execute the
 candidate-SHA credit recipe without a future tag and cover validator failures, candidate
 invalidation, independent GraphQL pagination and isolated wheel/index import recipes.
+
+## 0.2.0 validation
+
+See [parity/0.2.0.md](parity/0.2.0.md) for the direct CLI scenarios, deterministic coverage
+and explicitly unverified dimensions. New cases cover scoped agreements, evidence continuity
+and optional instruction migration.

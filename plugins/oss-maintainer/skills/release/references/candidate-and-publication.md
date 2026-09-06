@@ -25,7 +25,7 @@ publishing merge. Re-read the PR and base before acting and use the platform's e
 precondition where available. The repository must also enforce the approved base/preconditions
 atomically (or the pipeline must consume only the pinned candidate, independently of base
 changes). If the platform/workflow cannot enforce the required identity, stop as unsupported.
-Any changed identity invalidates checks and GO; prepare and approve the new candidate first.
+Any changed publication identity invalidates its GO; revalidate affected checks and approve the new candidate first.
 
 This rule also applies in the fix loop: accumulate fixes on the non-publishing candidate
 branch. If the project has no way to stage and test those fixes without distribution, stop
@@ -33,12 +33,22 @@ and ask for a workflow change, not broader ordinary merge approval.
 
 ## Candidate changes and observed artifacts
 
-`run_record.py candidate` and candidate `digest` updates supersede old evidence, clear the
-terminal verdict/timestamp and revoke approvals. Digests must be recorded before the gate
-results and approval that cover them. Repeating the same identity is a no-op. Approvals
-bind to the full candidate (version, commit and digests); `superseded` preserves prior results.
+`run_record.py candidate` and candidate `digest` updates preserve unaffected dependencies and
+revoke publication approval for changed identity. Record digests before their artifact checks,
+or atomically with `update --digest ... --depends-on artifact:NAME`. Source checks explicitly
+bound with `--depends-on source` survive artifact metadata enrichment at the same commit.
+Same-identity updates are a no-op. Merge/test permissions follow their action conditions;
+notes follow approved text and factual context. See `run-record.md` for schema and commands.
 A registry observation belongs in `digest --published`; it cannot retroactively approve a
 rebuild or rewrite what the pre-publication gate tested.
+
+## When a direct push publishes
+
+With an authorized direct-commit process, prepare and test the exact local commit without
+pushing to a publishing branch. Pin the remote base and candidate commit. The GO names that
+commit, artifact identity, destination and exact push. Recheck the remote preconditions and
+use the repository's normal non-force update protections; if concurrent changes prevent the
+approved update, stop and prepare a new candidate. Never force-push or bypass required review.
 
 ## Fresh versions
 

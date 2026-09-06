@@ -7,7 +7,7 @@ never counts as pass, and a release cannot close with `not-run` on the first two
 
 | # | Behaviour | Scenario | Claude Code | Codex |
 |---|---|---|---|---|
-| 1 | Explicit invocation resolves the skill (`/oss-maintainer:<skill>` · `$<skill>`) and implicit invocation does not fire it | any fixture, ask an unrelated question mentioning "release" | pass 2026-09-05 (`/oss-maintainer:<skill>` in every run; implicit invocation not exercised) | pass 2026-09-05 (`$init`, `$release`, `$smoke-e2e`, `$review-pr` resolved; implicit invocation not exercised) |
+| 1 | Explicit invocation resolves the skill (`/oss-maintainer:<skill>` · `$<skill>`) and implicit invocation does not fire it | any fixture, ask an unrelated question mentioning "release" | partial 2026-09-05 (explicit invocation passed; implicit non-invocation not exercised) | partial 2026-09-05 (explicit skills resolved; implicit non-invocation not exercised) |
 | 2 | Confirmation is requested before the first mutation | `init` on `no-profile` without pre-approval | pass 2026-09-05 (`init` on `no-profile` presented the plan, asked for a go-ahead, wrote nothing) | pass 2026-09-05 interactive (asked "May I write this scaffold?", wrote nothing); **fail in `codex exec`** (autonomous mode wrote the scaffold without asking, twice) |
 | 3 | Profile and references are loaded (transcript shows the reads of `profile.toml` and the skill's `references/`) | `init` check on `app-docker` | pass 2026-09-05 (profile, templates and references read; validator run) | pass 2026-09-05 (validator run from the plugin cache; SKILL.md cited) |
 | 4 | Readiness per capability matches the validator's output | `init` check on `pypi-library` | pass 2026-09-05 (`overlay-override`: table equals the validator's) | pass 2026-09-05 (`no-profile` and `overlay-override`: tables equal the validator's) |
@@ -24,4 +24,4 @@ Fill each cell with `pass`, `fail` or `not-run`, the date, and a one-line note.
 
 | date | plugin version | Claude Code | Codex | notes |
 |---|---|---|---|---|
-| 2026-09-05 | 0.1.0 (branch feat/oss-maintainer) | 10 pass | 8 pass, 1 partial (row 5), row 2 pass interactive / fail in `codex exec` | Non-interactive Codex runs (`codex exec`) execute the task as authorized and do not stop to ask; use the interactive CLI for anything that must wait for an answer. Scenarios run by hand from `cases/*/scaffold.sh`; `claude plugin eval` is early access. |
+| 2026-09-05 | 0.1.0 (branch feat/oss-maintainer) | 9 pass, row 1 partial | 7 pass, rows 1 and 5 partial, row 2 pass interactive / fail in `codex exec` | Non-interactive Codex runs (`codex exec`) execute the task as authorized and do not stop to ask; use the interactive CLI for anything that must wait for an answer. Scenarios run by hand from `cases/*/scaffold.sh`; `claude plugin eval` is early access. |
