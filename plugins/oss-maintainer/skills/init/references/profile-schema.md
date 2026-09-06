@@ -47,6 +47,8 @@ skill. `scripts/validate_profile.py` enforces it; this file explains it.
 | `[commands.<name>].timeout` | duration | | `10m` | `^\d+[smh]$` |
 | `[contributing].conventions` | path | PR-opening flows | `CONTRIBUTING.md` when present, else engine fallback | exists when set |
 | `[release].process_doc` | path | release (optional) | | exists when set |
+| `[release].change_delivery` | enum | release (optional) | `repository` | `repository` (discover process, PR fallback), `pr`, `direct`; never overrides protections or publication GO |
+| `[release].versioning` | enum | release (optional) | `semver` | `semver`, `repository` (requires process_doc) |
 | `[release].changelog` | path | release | `CHANGELOG.md` | exists |
 | `[release].version_files` | paths | release | | non-empty, every file exists |
 | `[release].lock_command` | str | release (optional) | | |
@@ -57,9 +59,9 @@ skill. `scripts/validate_profile.py` enforces it; this file explains it.
 | `[release].consumer_surfaces` | list | release (optional) | | what a breaking change can break: public exports, CLI flags, MCP tools, config keys |
 | `[release.gates].mandatory` | list | release | `["validator"]` | each name is a `[commands.*]` key or one of `image-gate`, `package-gate`, `bucket-c`, `notes-approved`, `security-alerts` |
 | `[release.gates].optional` | list | release | `[]` | same resolution; reported with a status, never skipped silently |
-| `[release.gates].not_gates` | list | release (optional) | `[]` | checks that produce signal but never block |
+| `[release.gates].not_gates` | list | release (optional) | `[]` | checks that produce signal but never block; cannot overlap mandatory |
 | `[release.gates].alerts_policy` | str | release (optional) | | free text |
-| `[release.gates].merge_own_prs` | enum | release | `ask-once-per-session` | `ask-once-per-session`, `always-ask`, `never` |
+| `[release.gates].merge_own_prs` | enum | release | `ask-once-per-session` | `ask-once-per-session`, `ask-once-per-run`, `always-ask`, `never` |
 | `[artifacts.docker].registries` | list | release if `app-docker` | | non-empty |
 | `[artifacts.docker].variants` | list | | `[""]` | image name suffixes |
 | `[artifacts.docker].platforms` | list | | | expected architectures |
@@ -74,13 +76,15 @@ skill. `scripts/validate_profile.py` enforces it; this file explains it.
 | `[artifacts.pypi].identity` | str | | `sha256` | of the wheel and sdist |
 | `[artifacts.npm].package` | str | release if `npm-package` | | placeholder archetype in v1 |
 | `[labels].needs_triage` … `[labels].bug` | str | triage, release | same names as the keys | canonical → real label names; existence checked live |
-| `[triage].preset` | str | triage | `maturity-ladder` | |
+| `[triage].preset` | enum | triage | `maturity-ladder` | `maturity-ladder`, `custom`; custom requires rules and explicit assignable states |
 | `[triage].assignable` | list | triage | `["close", "needs-design", "ready"]` | subset of the preset states plus `extra_states` |
 | `[triage].extra_states` | table | triage | `{}` | name → meaning, for states the preset lacks |
 | `[triage].rules` | path | triage | `.maintainer/triage.md` | exists when set |
 | `[triage].batch_approval` | enum | triage | `one-at-a-time` | `one-at-a-time`, `allowed` |
+| `[review].batch_approval` | enum | review-pr (optional) | `one-at-a-time` | `one-at-a-time`, `allowed`; every proposal and text must be visible |
 | `[review].docs` | paths | review-pr (optional) | found by function | each exists |
 | `[review].reviewers` | list | review-pr (optional) | `[]` | AI reviewers whose findings are read as hypotheses |
+| `[discussions].batch_approval` | enum | process-discussions (optional) | legacy triage setting, then `one-at-a-time` | `one-at-a-time`, `allowed` |
 | `[discussions].categories` | table | process-discussions | | name → GraphQL id, non-empty; absent table means the capability does not apply |
 | `[discussions].regenerate` | str | process-discussions (optional) | | command that lists category ids again |
 | `[discussions].public_anchors` | paths | process-discussions (optional) | | documents replies may cite |

@@ -11,11 +11,28 @@ A change to shared machinery (a base class, routing, configuration loading, a bu
 widens the sweep: one baseline check per consumer of that machinery, not only the feature that
 motivated the change.
 
-## Bucket A — automated now, run all of it
+## Executable plan
+
+Before execution, produce a compact table using commands/selectors discovered in the repository.
+Do not invent flags or infer that every provider test is required. Preserve mandatory project
+gates and the canonical validator independently of the additional risk-selected probes.
+
+| Change / shared component | Risk and coverage | Exact command or manual steps | Expected result / evidence | Resources (no secret values) | Executor / paid scope and limit | Before or after publication | Gate / unavailable disposition |
+|---|---|---|---|---|---|---|---|
+| Affected surface | Who can be affected and why this check is sufficient | Existing target plus verified selector, or concrete steps | Observable pass/fail and evidence location | Environment, service and credential names only | Agent or owner; budget/count when applicable | Pre-GO or post-publish | Mandatory, optional; blocked or explicitly unverified |
+
+Select a narrow supported command for localized changes. Shared code widens coverage only
+with a stated dependency rationale. If selectors do not exist, explain the smallest available
+suite and its cost; propose a supported alternative instead of silently running a broad paid
+suite. Present the actual paid/manual scope for approval once, unless a valid grant already
+covers it. Repeats consume the authorized allowance; an exhausted budget is a new decision.
+Unavailable mandatory checks block the relevant gate; optional gaps remain visible.
+
+## Bucket A — selected automated checks
 
 | Check | Source |
 |---|---|
-| The canonical validator and every other `[commands.*]` | profile |
+| The canonical validator, mandatory project checks and selected additional commands | profile |
 | The archetype gate | archetype reference |
 | The smoke journey, when the repository has one | `smoke-e2e` skill |
 | Dependency audit | security alerts, `npm audit`, `pip-audit` or the project's equivalent |

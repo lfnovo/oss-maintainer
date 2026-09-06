@@ -91,8 +91,7 @@ issues, decision records. When the answer is no, say it in the first paragraph w
 reasons.
 
 Graduation, when it applies: the Issue carries context with the Discussion origin link,
-expected outcome, out of scope, acceptance criteria and references, and the `ready` label
-(plus `bug` when applicable). A fix that lives in a library goes upstream first, then the
+expected outcome, out of scope, acceptance criteria and references, and the project's `[labels].ready` label (plus `[labels].bug` when applicable). A fix that lives in a library goes upstream first, then the
 downstream bump issue, then the reply citing both; a dependent issue states "Depends on".
 
 ## Phase 3 — Draft the reply
@@ -106,8 +105,9 @@ offered, the status line. No promises, no timelines, no filler.
 
 Present decisions in the format of `references/decision-format.md`, numbered ("Decision 2 of
 4"). Default: one decision at a time. When no answer can be obtained in this session (a
-non-interactive run), the decisions are the deliverable and nothing is posted. When `[triage].batch_approval = "allowed"` the
-maintainer may authorize a reviewed set at once, every proposal and text visible. On
+non-interactive run), the decisions are the deliverable and nothing is posted. When `[discussions].batch_approval = "allowed"` the
+maintainer may authorize a reviewed set at once, every proposal and text visible. When this
+field is absent, retain `[triage].batch_approval` as the legacy fallback, then one-at-a-time. On
 approval, execute the whole package in order, side actions first (issues created, threads
 renamed, closures) and the reply last so it carries real links, then report the URLs and
 present the next decision. Bodies go to scratch files and are posted with `-F body=@file`.

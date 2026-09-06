@@ -1,0 +1,1 @@
+Use init to preview a migration to canonical AGENTS.md, including nested instructions. Do not apply changes: no preview has been approved. Explain conflicts and how the plan preserves content, scope and links. Do not invent commands.

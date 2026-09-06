@@ -121,7 +121,8 @@ As the maintainer instructs (`references/github-recipes.md`):
 
 ## Guidelines
 
-- One PR at a time; no batch reviews without a pause.
+- One PR at a time by default. When `[review].batch_approval = "allowed"`, the maintainer
+  may approve a concrete reviewed set with every proposed text and effect visible.
 - Judge against the project's rules, not against preference.
 - Record the session summary (PRs reviewed, verdicts, recurring findings) in
   `.maintainer/state/runs/` when a profile exists.

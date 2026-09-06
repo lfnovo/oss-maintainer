@@ -3,10 +3,11 @@
 | Field | Use | Without it |
 |---|---|---|
 | `[project].artifact` | selects the archetype reference and gate | release incomplete |
-| `[commands.validator]` and other `[commands.*]` | bucket A | release incomplete |
+| `[commands.validator]` and selected `[commands.*]` | canonical validation, mandatory gates and selected probes | validator missing: release incomplete |
 | `[release].changelog`, `[release].version_files` | phases 0 and 7 | release incomplete |
 | `[release].distribution_trigger` | phase 10; must not be `TODO` or unconfirmed | release incomplete |
 | `[release].process_doc`, `[release].notes_source`, `[release].publish_workflow`, `[release].lock_command`, `[release].consumer_surfaces`, `[release].latest_promotion` | context, notes, watching, cut, version decision | defaults and general judgement |
+| `[release].change_delivery`, `[release].versioning` | project agreement, contribution method and version convention | repository process with PR fallback; SemVer |
 | `[release.gates]` | mandatory and optional checks, merge policy, alerts policy | `mandatory = ["validator"]`, ask once per session |
 | `[artifacts.docker]` or `[artifacts.pypi]` | the archetype gate and verification | release incomplete for that archetype |
 | `[contributing].conventions` | every PR the skill opens | `CONTRIBUTING.md`, else the engine fallback |

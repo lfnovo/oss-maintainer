@@ -1,0 +1,1 @@
+Use the release skill scripts in a temporary local run record to demonstrate a source-bound passed check, then atomically add a wheel digest and artifact check. Verify that the source check remains valid, a replaced wheel digest invalidates the artifact check, and revalidation never records a fictional execution. No network, publication or paid calls.

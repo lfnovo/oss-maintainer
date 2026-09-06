@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-05T20:32:18Z",
+  "lastUpdated": "2026-09-06T02:13:30Z",
   "components": [
     {
       "id": "skill:init",
@@ -33,6 +33,14 @@
       "name": "detect_repo",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/init/scripts/detect_repo.py",
+      "description": "Bundled with the init skill."
+    },
+    {
+      "id": "script:migrate-instructions",
+      "type": "script",
+      "name": "migrate_instructions",
+      "plugin": "oss-maintainer",
+      "canonicalPath": "plugins/oss-maintainer/skills/init/scripts/migrate_instructions.py",
       "description": "Bundled with the init skill."
     },
     {
@@ -184,6 +192,18 @@
       "harness": "codex",
       "status": "shared",
       "path": "plugins/oss-maintainer/skills/init/scripts/detect_repo.py"
+    },
+    {
+      "componentId": "script:migrate-instructions",
+      "harness": "claude",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/migrate_instructions.py"
+    },
+    {
+      "componentId": "script:migrate-instructions",
+      "harness": "codex",
+      "status": "shared",
+      "path": "plugins/oss-maintainer/skills/init/scripts/migrate_instructions.py"
     },
     {
       "componentId": "script:validate-profile",

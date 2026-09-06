@@ -6,7 +6,7 @@ phases and the gates; this file supplies what to type.
 ## Bucket A
 
 ```bash
-# TODO canonical validator and the other declared commands
+# TODO canonical validator, mandatory checks and selected risk probes
 ```
 
 ## Artifact gate
@@ -18,7 +18,7 @@ phases and the gates; this file supplies what to type.
 ## Cut
 
 ```bash
-# TODO bump version files, date the changelog, lock, PR
+# TODO bump version files, date the changelog, lock, agreed PR or direct-commit process
 ```
 
 ## Publish (only after the GO)

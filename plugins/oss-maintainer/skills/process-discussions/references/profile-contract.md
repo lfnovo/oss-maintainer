@@ -9,7 +9,7 @@
 | `[discussions].never_cite` | what must never appear in public text | the `.maintainer/PROFILE.md` list |
 | `[discussions].graduation`, `[discussions].close_on` | policies | `pull`; close on `answer` and when graduated work lands |
 | `[labels].ready`, `[labels].bug` | labels for graduated Issues | `ready`, `bug` |
-| `[triage].batch_approval` | whether a reviewed set may be authorized at once | one at a time |
+| `[discussions].batch_approval` | whether a reviewed set may be authorized at once | legacy `[triage].batch_approval`, then one at a time |
 | `[upstreams]` | local checkouts to verify claims about libraries | verification limited to this repository |
 | `[artifacts.docker].dev_tag` | where to point testers when a fix merged | "the next release" |
 | `[comms]` | languages, attribution | interact in the user's language, publish in English |

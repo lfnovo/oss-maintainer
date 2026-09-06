@@ -1,26 +1,13 @@
-# Test matrix
+# Release test plan
 
-Instantiate against the real release diff. The unit of planning is the risk, not the feature.
+Instantiate against the actual diff, retaining canonical and mandatory project checks.
+Use repository-supported commands/selectors. No secret values belong in this document.
 
-## Bucket A — automated now
+| Change / component | Risk and coverage | Exact command or manual action | Expected result / evidence | Resources | Executor / paid scope and limit | Pre-GO or post-publish | Gate / unavailable disposition |
+|---|---|---|---|---|---|---|---|
+| TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
 
-| Check | Command |
-|---|---|
-| TODO | TODO |
-
-## Probe library
-
-- TODO: regression-of-legitimate-use probes proven in past releases.
-
-## Bucket B — automatable with investment
-
-- TODO: candidates; build when it compounds and costs less than the manual check it replaces.
-
-## Bucket C — pre-publication manual checks
-
-- TODO: real credentials, real integrations, visual tour.
-
-## Post-publication verification — phase 11
-
-- Verify the distributed artifact and release page after publication; required to finish,
-  never a prerequisite to the GO that authorizes publication.
+A: automated now. B: proposed automation investment, decided with the owner and routed to A
+or C. C: owner/manual or paid work under an explicit scope. Record approved scope once and
+retain it while conditions and limits hold. Shared changes widen coverage with justification;
+localized changes use the smallest supported check. Post-publication checks never feed pre-GO.

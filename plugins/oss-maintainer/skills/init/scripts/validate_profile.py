@@ -31,19 +31,52 @@ if sys.version_info < (3, 11):  # pragma: no cover
 import tomllib
 
 SCHEMA_VERSION = 1
-CAPABILITIES = ["init", "release", "triage", "review-pr", "process-discussions", "smoke-e2e"]
+CAPABILITIES = [
+    "init",
+    "release",
+    "triage",
+    "review-pr",
+    "process-discussions",
+    "smoke-e2e",
+]
 ARCHETYPES = {"app-docker", "pypi-library", "npm-package", "custom", "unknown"}
 KNOWN_TABLES = {
-    "project", "commands", "contributing", "release", "artifacts", "labels", "triage",
-    "review", "discussions", "smoke", "comms", "channels", "upstreams",
+    "project",
+    "commands",
+    "contributing",
+    "release",
+    "artifacts",
+    "labels",
+    "triage",
+    "review",
+    "discussions",
+    "smoke",
+    "comms",
+    "channels",
+    "upstreams",
 }
 OVERLAY_ALLOWED = {
-    ("smoke", "api_url"), ("smoke", "frontend_url"), ("comms", "owner_language"),
+    ("smoke", "api_url"),
+    ("smoke", "frontend_url"),
+    ("comms", "owner_language"),
     ("project", "commands_doc"),
 }
 OVERLAY_ALLOWED_TABLES = {"upstreams", "channels"}
-LADDER_STATES = {"needs-triage", "needs-vision", "needs-design", "awaiting-demand", "ready", "close"}
-BUILTIN_GATES = {"image-gate", "package-gate", "bucket-c", "notes-approved", "security-alerts"}
+LADDER_STATES = {
+    "needs-triage",
+    "needs-vision",
+    "needs-design",
+    "awaiting-demand",
+    "ready",
+    "close",
+}
+BUILTIN_GATES = {
+    "image-gate",
+    "package-gate",
+    "bucket-c",
+    "notes-approved",
+    "security-alerts",
+}
 TIMEOUT = re.compile(r"^\d+[smh]$")
 REPO = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
@@ -58,7 +91,15 @@ class Report:
 
     def capability(self, name: str) -> dict:
         return self.capabilities.setdefault(
-            name, {"status": "ready", "missing": [], "todos": [], "confirm": [], "warnings": [], "assumed": []}
+            name,
+            {
+                "status": "ready",
+                "missing": [],
+                "todos": [],
+                "confirm": [],
+                "warnings": [],
+                "assumed": [],
+            },
         )
 
 
@@ -66,7 +107,12 @@ def repo_root(explicit: str | None) -> Path:
     if explicit:
         return Path(explicit).resolve()
     try:
-        out = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True)
+        out = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return Path(out.stdout.strip()).resolve()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return Path.cwd().resolve()
@@ -139,7 +185,13 @@ def check_markers(cap: dict, value, dotted: str) -> bool:
     if flag:
         cap["todos" if flag == "todo" else "confirm"].append(dotted)
         return True
-    children = value.items() if isinstance(value, dict) else enumerate(value) if isinstance(value, list) else []
+    children = (
+        value.items()
+        if isinstance(value, dict)
+        else enumerate(value)
+        if isinstance(value, list)
+        else []
+    )
     found = False
     for key, child in children:
         path = f"{dotted}.{key}" if isinstance(value, dict) else f"{dotted}[{key}]"
@@ -147,8 +199,15 @@ def check_markers(cap: dict, value, dotted: str) -> bool:
     return found
 
 
-def check_field(cap: dict, table: dict, dotted: str, kind: str, required: bool, root: Path,
-                enum: set | None = None) -> object:
+def check_field(
+    cap: dict,
+    table: dict,
+    dotted: str,
+    kind: str,
+    required: bool,
+    root: Path,
+    enum: set | None = None,
+) -> object:
     """Validate a consumed field before dereferencing, hashing or constructing paths."""
     if not isinstance(table, dict):
         cap["missing"].append(f"{dotted.rsplit('.', 1)[0]} (expected table)")
@@ -164,13 +223,17 @@ def check_field(cap: dict, table: dict, dotted: str, kind: str, required: bool, 
     if kind in {"str", "path"} and not isinstance(value, str):
         cap["missing"].append(f"{dotted} (expected string)")
         return None
-    if kind in {"list", "paths"} and not (isinstance(value, list) and all(isinstance(v, str) for v in value)):
+    if kind in {"list", "paths"} and not (
+        isinstance(value, list) and all(isinstance(v, str) for v in value)
+    ):
         cap["missing"].append(f"{dotted} (expected list of strings)")
         return None
     if kind == "table" and not isinstance(value, dict):
         cap["missing"].append(f"{dotted} (expected table)")
         return None
-    strings = [value] if isinstance(value, str) else value if isinstance(value, list) else []
+    strings = (
+        [value] if isinstance(value, str) else value if isinstance(value, list) else []
+    )
     if any(not item.strip() for item in strings):
         cap["missing"].append(f"{dotted} (must not be empty or whitespace)")
         return None
@@ -186,7 +249,9 @@ def check_field(cap: dict, table: dict, dotted: str, kind: str, required: bool, 
     return value
 
 
-def check_choice(cap: dict, table: dict, dotted: str, default, choices: set, root: Path) -> None:
+def check_choice(
+    cap: dict, table: dict, dotted: str, default, choices: set, root: Path
+) -> None:
     key = dotted.split(".")[-1]
     source = {key: table.get(key, default)}
     if isinstance(default, list):
@@ -208,7 +273,9 @@ def validate_shared(profile: dict, cap: dict, root: Path, name: str) -> None:
     comms = table_at(profile, "comms", cap)
     for field in ("owner_language", "public_language"):
         check_field(cap, comms, f"comms.{field}", "str", False, root)
-    check_choice(cap, comms, "comms.agent_attribution", "none", {"none", "disclaimer"}, root)
+    check_choice(
+        cap, comms, "comms.agent_attribution", "none", {"none", "disclaimer"}, root
+    )
     if name in {"init", "triage", "review-pr", "release", "process-discussions"}:
         contributing = table_at(profile, "contributing", cap)
         check_field(cap, contributing, "contributing.conventions", "path", False, root)
@@ -225,19 +292,30 @@ def validate_commands(profile: dict, cap: dict, root: Path) -> dict:
         return {}
     for name, spec in commands.items():
         if not isinstance(spec, dict):
-            cap["missing"].append(f"commands.{name} (expected table with run, cwd, timeout)")
+            cap["missing"].append(
+                f"commands.{name} (expected table with run, cwd, timeout)"
+            )
             continue
         check_field(cap, spec, f"commands.{name}.run", "str", True, root)
         cwd = spec.get("cwd", ".")
         if check_markers(cap, cwd, f"commands.{name}.cwd"):
             cwd = "."
-        if not isinstance(cwd, str) or not cwd.strip() or Path(cwd).is_absolute() or not (root / cwd).is_dir():
-            cap["missing"].append(f"commands.{name}.cwd: directory does not exist ({cwd})")
+        if (
+            not isinstance(cwd, str)
+            or not cwd.strip()
+            or Path(cwd).is_absolute()
+            or not (root / cwd).is_dir()
+        ):
+            cap["missing"].append(
+                f"commands.{name}.cwd: directory does not exist ({cwd})"
+            )
         timeout = spec.get("timeout", "10m")
         if check_markers(cap, timeout, f"commands.{name}.timeout"):
             timeout = "10m"
         if not isinstance(timeout, str) or not TIMEOUT.match(timeout):
-            cap["missing"].append(f"commands.{name}.timeout: expected <number>[smh] ({timeout})")
+            cap["missing"].append(
+                f"commands.{name}.timeout: expected <number>[smh] ({timeout})"
+            )
     return commands
 
 
@@ -248,7 +326,9 @@ def validate_init(profile: dict, report: Report, root: Path) -> None:
     if isinstance(upstreams, dict):
         for name, path in upstreams.items():
             if not isinstance(path, str) or not (root / path).exists():
-                cap["warnings"].append(f"upstreams.{name}: local checkout not found ({path})")
+                cap["warnings"].append(
+                    f"upstreams.{name}: local checkout not found ({path})"
+                )
     else:
         cap["missing"].append("upstreams (expected table of name = path)")
     if "commands_doc" in project:
@@ -258,9 +338,13 @@ def validate_init(profile: dict, report: Report, root: Path) -> None:
 def validate_release(profile: dict, report: Report, root: Path) -> None:
     cap = report.capability("release")
     project = table_at(profile, "project", cap)
-    artifact = check_field(cap, project, "project.artifact", "str", True, root, ARCHETYPES)
+    artifact = check_field(
+        cap, project, "project.artifact", "str", True, root, ARCHETYPES
+    )
     if artifact == "unknown":
-        cap["missing"].append("project.artifact is unknown; set the archetype before releasing")
+        cap["missing"].append(
+            "project.artifact is unknown; set the archetype before releasing"
+        )
     commands = validate_commands(profile, cap, root)
     if "validator" not in commands:
         cap["missing"].append("commands.validator")
@@ -276,18 +360,53 @@ def validate_release(profile: dict, report: Report, root: Path) -> None:
     for field in ("lock_command", "latest_promotion"):
         check_field(cap, release, f"release.{field}", "str", False, root)
     check_field(cap, release, "release.consumer_surfaces", "list", False, root)
+    check_choice(
+        cap,
+        release,
+        "release.change_delivery",
+        "repository",
+        {"repository", "pr", "direct"},
+        root,
+    )
+    check_choice(
+        cap, release, "release.versioning", "semver", {"semver", "repository"}, root
+    )
+    if release.get("versioning") == "repository" and not release.get("process_doc"):
+        cap["missing"].append(
+            "release.versioning=repository requires release.process_doc"
+        )
     gates = table_at(release, "gates", cap, "release.gates")
     check_field(cap, gates, "release.gates.not_gates", "list", False, root)
     check_field(cap, gates, "release.gates.alerts_policy", "str", False, root)
     known = set(commands) | BUILTIN_GATES
     check_choice(cap, gates, "release.gates.mandatory", ["validator"], known, root)
     check_choice(cap, gates, "release.gates.optional", [], known, root)
-    check_choice(cap, gates, "release.gates.merge_own_prs", "ask-once-per-session",
-                 {"ask-once-per-session", "always-ask", "never"}, root)
+    mandatory, nonblocking = (
+        gates.get("mandatory", ["validator"]),
+        gates.get("not_gates", []),
+    )
+    if isinstance(mandatory, list) and isinstance(nonblocking, list):
+        overlap = [
+            name for name in mandatory if isinstance(name, str) and name in nonblocking
+        ]
+        if overlap:
+            cap["missing"].append(
+                "mandatory checks cannot be not_gates: " + ", ".join(overlap)
+            )
+    check_choice(
+        cap,
+        gates,
+        "release.gates.merge_own_prs",
+        "ask-once-per-session",
+        {"ask-once-per-session", "ask-once-per-run", "always-ask", "never"},
+        root,
+    )
     artifacts = table_at(profile, "artifacts", cap)
     if artifact == "app-docker":
         docker = table_at(artifacts, "docker", cap, "artifacts.docker")
-        registries = check_field(cap, docker, "artifacts.docker.registries", "list", True, root)
+        registries = check_field(
+            cap, docker, "artifacts.docker.registries", "list", True, root
+        )
         if isinstance(registries, list) and not registries:
             cap["missing"].append("artifacts.docker.registries must not be empty")
         check_field(cap, docker, "artifacts.docker.gate", "str", True, root)
@@ -296,8 +415,12 @@ def validate_release(profile: dict, report: Report, root: Path) -> None:
         check_field(cap, docker, "artifacts.docker.platforms", "list", False, root)
         variants = docker.get("variants", [""])
         if not check_markers(cap, variants, "artifacts.docker.variants"):
-            if not isinstance(variants, list) or not all(isinstance(v, str) for v in variants):
-                cap["missing"].append("artifacts.docker.variants (expected list of strings)")
+            if not isinstance(variants, list) or not all(
+                isinstance(v, str) for v in variants
+            ):
+                cap["missing"].append(
+                    "artifacts.docker.variants (expected list of strings)"
+                )
     elif artifact == "pypi-library":
         pypi = table_at(artifacts, "pypi", cap, "artifacts.pypi")
         check_field(cap, pypi, "artifacts.pypi.package", "str", True, root)
@@ -305,14 +428,23 @@ def validate_release(profile: dict, report: Report, root: Path) -> None:
         for field in ("install_check", "identity"):
             check_field(cap, pypi, f"artifacts.pypi.{field}", "str", False, root)
         check_field(cap, pypi, "artifacts.pypi.extras", "list", False, root)
-        check_choice(cap, pypi, "artifacts.pypi.surfaces", ["library"], {"library", "cli", "mcp"}, root)
+        check_choice(
+            cap,
+            pypi,
+            "artifacts.pypi.surfaces",
+            ["library"],
+            {"library", "cli", "mcp"},
+            root,
+        )
     elif artifact == "npm-package":
         npm = table_at(artifacts, "npm", cap, "artifacts.npm")
         check_field(cap, npm, "artifacts.npm.package", "str", True, root)
         cap["warnings"].append("npm-package archetype is a placeholder in schema v1")
     elif artifact == "custom":
         if not (root / ".maintainer" / "release" / "runbook.md").exists():
-            cap["missing"].append("custom archetype requires .maintainer/release/runbook.md")
+            cap["missing"].append(
+                "custom archetype requires .maintainer/release/runbook.md"
+            )
 
 
 def validate_triage(profile: dict, report: Report, root: Path) -> None:
@@ -326,7 +458,18 @@ def validate_triage(profile: dict, report: Report, root: Path) -> None:
     extra = table_at(triage, "extra_states", cap, "triage.extra_states")
     for key in extra:
         check_field(cap, extra, f"triage.extra_states.{key}", "str", True, root)
-    check_field(cap, triage, "triage.preset", "str", False, root)
+    check_choice(
+        cap,
+        triage,
+        "triage.preset",
+        "maturity-ladder",
+        {"maturity-ladder", "custom"},
+        root,
+    )
+    if triage.get("preset") == "custom":
+        check_field(cap, triage, "triage.rules", "path", True, root)
+        if not triage.get("assignable"):
+            cap["missing"].append("custom triage requires explicit triage.assignable")
     assignable = check_field(cap, triage, "triage.assignable", "list", False, root)
     if isinstance(assignable, list):
         for state in assignable:
@@ -334,16 +477,33 @@ def validate_triage(profile: dict, report: Report, root: Path) -> None:
                 cap["missing"].append(f"triage.assignable: unknown state {state}")
     if "rules" in triage:
         check_field(cap, triage, "triage.rules", "path", False, root)
-    check_choice(cap, triage, "triage.batch_approval", "one-at-a-time", {"one-at-a-time", "allowed"}, root)
+    check_choice(
+        cap,
+        triage,
+        "triage.batch_approval",
+        "one-at-a-time",
+        {"one-at-a-time", "allowed"},
+        root,
+    )
 
 
 def validate_review(profile: dict, report: Report, root: Path) -> None:
     cap = report.capability("review-pr")
     review = table_at(profile, "review", cap)
+    check_choice(
+        cap,
+        review,
+        "review.batch_approval",
+        "one-at-a-time",
+        {"one-at-a-time", "allowed"},
+        root,
+    )
     if "docs" in review:
         check_field(cap, review, "review.docs", "paths", False, root)
     else:
-        cap["assumed"].append("review.docs: found by function (agent docs, architecture, contributing)")
+        cap["assumed"].append(
+            "review.docs: found by function (agent docs, architecture, contributing)"
+        )
     if "reviewers" in review:
         check_field(cap, review, "review.reviewers", "list", False, root)
 
@@ -355,19 +515,41 @@ def validate_discussions(profile: dict, report: Report, root: Path) -> None:
         cap["status"] = "not-applicable"
         return
     discussions = table_at(profile, "discussions", cap)
-    categories = check_field(cap, discussions, "discussions.categories", "table", True, root)
+    check_choice(
+        cap,
+        discussions,
+        "discussions.batch_approval",
+        "one-at-a-time",
+        {"one-at-a-time", "allowed"},
+        root,
+    )
+    categories = check_field(
+        cap, discussions, "discussions.categories", "table", True, root
+    )
     if isinstance(categories, dict):
         if not categories:
             cap["missing"].append("discussions.categories must map names to ids")
         for key in categories:
-            check_field(cap, categories, f"discussions.categories.{key}", "str", True, root)
+            check_field(
+                cap, categories, f"discussions.categories.{key}", "str", True, root
+            )
     check_field(cap, discussions, "discussions.regenerate", "str", False, root)
     check_field(cap, discussions, "discussions.never_cite", "list", False, root)
     if "public_anchors" in discussions:
-        check_field(cap, discussions, "discussions.public_anchors", "paths", False, root)
-    check_choice(cap, discussions, "discussions.graduation", "pull", {"pull", "push"}, root)
-    check_choice(cap, discussions, "discussions.close_on", ["answer", "graduated-work-landed"],
-                 {"answer", "graduated-work-landed", "never"}, root)
+        check_field(
+            cap, discussions, "discussions.public_anchors", "paths", False, root
+        )
+    check_choice(
+        cap, discussions, "discussions.graduation", "pull", {"pull", "push"}, root
+    )
+    check_choice(
+        cap,
+        discussions,
+        "discussions.close_on",
+        ["answer", "graduated-work-landed"],
+        {"answer", "graduated-work-landed", "never"},
+        root,
+    )
 
 
 def validate_smoke(profile: dict, report: Report, root: Path) -> None:
@@ -386,7 +568,9 @@ def validate_smoke(profile: dict, report: Report, root: Path) -> None:
             cap["missing"].append(f"smoke.{field}: expected <number>[smh]")
     journey = {"journey": smoke.get("journey", ".maintainer/smoke/journey.md")}
     check_field(cap, journey, "smoke.journey", "path", True, root)
-    check_choice(cap, smoke, "smoke.mandatory_surfaces", ["api"], {"api", "ui", "db"}, root)
+    check_choice(
+        cap, smoke, "smoke.mandatory_surfaces", ["api"], {"api", "ui", "db"}, root
+    )
 
 
 VALIDATORS = {
@@ -401,7 +585,9 @@ VALIDATORS = {
 
 def finalize(report: Report) -> None:
     for cap in report.capabilities.values():
-        if cap["status"] == "not-applicable" and not (cap["missing"] or cap["todos"] or cap["confirm"]):
+        if cap["status"] == "not-applicable" and not (
+            cap["missing"] or cap["todos"] or cap["confirm"]
+        ):
             continue
         if cap["missing"] or cap["todos"]:
             cap["status"] = "incomplete"
@@ -442,7 +628,9 @@ def validate(root: Path, requested: list[str]) -> tuple[Report, dict | None, int
             merge_overlay(profile, overlay, report)
     version = profile.get("schema_version")
     if type(version) is not int or version != SCHEMA_VERSION:
-        report.errors.append(f"schema_version must be {SCHEMA_VERSION} (found {version!r})")
+        report.errors.append(
+            f"schema_version must be {SCHEMA_VERSION} (found {version!r})"
+        )
     for table in profile:
         if table != "schema_version" and table not in KNOWN_TABLES:
             report.warnings.append(f"unknown table [{table}] ignored")
@@ -451,7 +639,8 @@ def validate(root: Path, requested: list[str]) -> tuple[Report, dict | None, int
         VALIDATORS[name](profile, report, root)
     finalize(report)
     blocking = report.errors or any(
-        cap["status"] in {"incomplete", "needs-confirmation"} for cap in report.capabilities.values()
+        cap["status"] in {"incomplete", "needs-confirmation"}
+        for cap in report.capabilities.values()
     )
     return report, profile, 1 if blocking else 0
 
@@ -470,8 +659,12 @@ def render_text(report: Report, profile: dict | None) -> str:
         lines.append(f"{name:22} {cap['status']:20} {'; '.join(details)}")
     if report.overlay["applied"] or report.overlay["rejected"]:
         lines.append("")
-        lines.append(f"overlay applied: {', '.join(report.overlay['applied']) or 'none'}")
-        lines.append(f"overlay rejected (policy fields cannot be overridden locally): {', '.join(report.overlay['rejected']) or 'none'}")
+        lines.append(
+            f"overlay applied: {', '.join(report.overlay['applied']) or 'none'}"
+        )
+        lines.append(
+            f"overlay rejected (policy fields cannot be overridden locally): {', '.join(report.overlay['rejected']) or 'none'}"
+        )
     for error in report.errors:
         lines.append(f"error: {error}")
     for warning in report.warnings:
@@ -480,7 +673,9 @@ def render_text(report: Report, profile: dict | None) -> str:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--root")
     parser.add_argument("--capability", default="all", choices=CAPABILITIES + ["all"])
     parser.add_argument("--json", action="store_true")
@@ -492,7 +687,9 @@ def main(argv: list[str]) -> int:
         payload = {
             "schema_version": SCHEMA_VERSION,
             "root": str(root),
-            "profile": None if profile is None else str((root / ".maintainer" / "profile.toml").relative_to(root)),
+            "profile": None
+            if profile is None
+            else str((root / ".maintainer" / "profile.toml").relative_to(root)),
             "effective_profile": profile,
             "capabilities": report.capabilities,
             "overlay": report.overlay,
