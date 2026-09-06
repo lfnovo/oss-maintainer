@@ -5,6 +5,48 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-06
+
+Simplifies the release and setup protocol after the first real release run with the plugin
+(#25): the same guarantees, far less ceremony.
+
+### Changed
+- One release record, four commands. `run_record.py` is now `new`, `set`, `show`, `finish`
+  (record schema 3). Approvals are recorded in the maintainer's words; only the publication
+  approval binds mechanically to the exact candidate (commit, version, trigger, digests).
+  No execution counting, reservations, limits or expiry bookkeeping (#25).
+- One completion rule shared by `show` and `finish`: a mandatory check blocks until it is
+  `passed` with evidence or waived by a recorded decision; optional checks and observations
+  never block, and both commands name the same outstanding items (#25).
+- Evidence reuse with a written rationale (`set --reuse-from`) when the tested inputs did not
+  change; the original execution and its timestamp are preserved, never rewritten (#25).
+- The fifteen release phases become six steps, and the executable test plan, the owner's
+  checklist and the gate table become one coverage table with real probes, observable success
+  and an environment preflight, produced with the first proposal and reused up to the GO (#25).
+- `init` drafts from the evidence with `CONFIRM:`/`TODO` markers and presents the complete
+  configuration and readiness once; check mode proposes all edits in one message (#25).
+- Generated documents stop repeating policy: the runbook owns the release sequence and
+  references the profile fields, the test-matrix template seeds the coverage table, and the
+  `.maintainer` README says where each kind of fact lives (#25).
+- The owner's manual checks gate is named `owner-checks`; `bucket-c` is still accepted as its
+  legacy name.
+- PRINCIPLES and VISION state that the record is a result of the work and never a condition
+  for continuing it, that publication is the one gate that always asks, and that ceremony is
+  judged by its total cost on a whole release.
+
+### Fixed
+- The `pypi-library` gate builds from a temporary worktree of the candidate commit, prints
+  what the working tree would have added, copies the artifacts back to `dist/` and inspects
+  sdist entries against tracked files, so an untracked file cannot enter a local artifact (#25).
+- `release` resolves once which Python 3.11+ runs the bundled scripts and reuses it, and waits
+  for the actual prerequisite before starting a dependent verification (#25).
+
+### Compatibility
+- Profile schema remains 1. Run-record schema 1 and 2 files are read without rewriting;
+  phases are kept as history, checks and approvals are mapped conservatively, and the first
+  `set` upgrades the file. The old `update`, `authorize`, `candidate`, `digest`, `latest`,
+  `pending`, `revalidate`, `permissions` and `consume` subcommands are gone.
+
 ## [0.2.0] - 2026-09-05
 
 ### Added

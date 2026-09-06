@@ -18,7 +18,7 @@ The plugin requires honest evidence and respect for authority, recommends mainte
 
 ## Status
 
-Version 0.2.0. Skills:
+Version 0.3.0. Skills:
 
 | Skill | Purpose | Invocation |
 |---|---|---|

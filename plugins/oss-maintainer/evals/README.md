@@ -44,3 +44,11 @@ invalidation, independent GraphQL pagination and isolated wheel/index import rec
 See [parity/0.2.0.md](parity/0.2.0.md) for the direct CLI scenarios, deterministic coverage
 and explicitly unverified dimensions. New cases cover scoped agreements, evidence continuity
 and optional instruction migration.
+
+## 0.3.0 validation
+
+See [parity/0.3.0.md](parity/0.3.0.md). The release cases follow the six steps and the four
+record commands; `release-partial-publish` keeps its schema-1 seed on purpose as the
+legacy-read scenario. The acceptance the issue asks for, a normal release and a release with
+one late documentation change conducted with the simplified guidance, happens on the next real
+release of a downstream repository and is recorded there.
