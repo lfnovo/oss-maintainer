@@ -1,0 +1,35 @@
+plugins/oss-maintainer/.codex-plugin/plugin.json
+  s_faee0f1d49c94e::t_f235566315e640 3
+CHANGELOG.md
+  s_faee0f1d49c94e::t_d0e206261651ff 8-49
+README.md
+  s_faee0f1d49c94e::t_d0e206261651ff 21
+.agent-smith/index.json
+  s_faee0f1d49c94e::t_d0e206261651ff 12
+plugins/oss-maintainer/evals/README.md
+  s_faee0f1d49c94e::t_d0e206261651ff 47-54
+.agents/plugins/marketplace.json
+  s_faee0f1d49c94e::t_f235566315e640 16
+plugins/oss-maintainer/.claude-plugin/plugin.json
+  s_faee0f1d49c94e::t_f235566315e640 3
+.claude-plugin/marketplace.json
+  s_faee0f1d49c94e::t_f235566315e640 14
+plugins/oss-maintainer/evals/parity/0.3.0.md
+  s_faee0f1d49c94e::t_34d13d0f0589ea 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "8b61fc905b2bd4c232efed7eb8201ae6ddd2f450",
+  "prompts": {},
+  "sessions": {
+    "s_faee0f1d49c94e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69ad6050-96d5-4a41-ae6b-66709fc7be9b",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
