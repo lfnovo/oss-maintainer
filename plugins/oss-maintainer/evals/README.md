@@ -5,9 +5,9 @@ Scenario material for the `oss-maintainer` plugin.
 - `fixtures/`: small fake repositories (no `.git`; tests copy them to a temp dir and run
   `git init` when a scenario needs a repository). Shared by the deterministic tests under
   the repository root `tests/` and by the eval cases.
-- `cases/<case>/case.yaml`: `claude plugin eval` cases. Each case seeds a fixture through its
-  `scaffold.sh` and grades the transcript (see `README` in each case). Run from the repository
-  root:
+- `cases/<case>/`: `claude plugin eval` cases. `prompt.md` carries the case settings in its
+  frontmatter and the user prompt in its body; `scaffold.sh` seeds a fixture; `graders/` grade
+  the transcript. Run from the repository root:
 
   ```bash
   claude plugin eval plugins/oss-maintainer --scaffold \

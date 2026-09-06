@@ -73,7 +73,9 @@ is `passed`; otherwise **NO-GO** with the checks that decided it. Skipped option
 are listed with their reason. Producing the report is not a positive result.
 
 Write a run record under `.maintainer/state/runs/` with the check statuses and the evidence
-paths (the `release` skill reads it as its smoke gate).
+paths, using the `release` skill's `scripts/run_record.py` when it is available
+(`new --skill smoke-e2e --version <version> --mandatory api --mandatory ui`, then `set --check`
+per check and `finish`); the `release` skill reads it as its smoke gate.
 
 ## Rules
 
