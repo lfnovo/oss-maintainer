@@ -47,14 +47,14 @@ def test_delivery_cannot_finish_empty_and_optional_checks_never_block(tmp_path):
 def test_custom_mandatory_checks_join_the_contract(tmp_path):
     (tmp_path / ".maintainer").mkdir()
     (tmp_path / ".maintainer/profile.toml").write_text("schema_version = 1\n")
-    code, out = run("new", "--root", str(tmp_path), "--version", "1", "--commit", "abc", "--mandatory", "bucket-c", "--mandatory", "release-page:post")
+    code, out = run("new", "--root", str(tmp_path), "--version", "1", "--commit", "abc", "--mandatory", "owner-checks", "--mandatory", "release-page:post")
     assert code == 0
     from pathlib import Path
 
     path = Path(out)
     checks = {c["name"]: c for c in read(path)["checks"]}
-    assert checks["bucket-c"]["stage"] == "pre" and checks["release-page"]["stage"] == "post"
+    assert checks["owner-checks"]["stage"] == "pre" and checks["release-page"]["stage"] == "post"
     pass_all_mandatory(path)
     approve_publication(path)
     code, err = run("finish", str(path), "--verdict", "GO")
-    assert code == 2 and "bucket-c" in err and "release-page" in err
+    assert code == 2 and "owner-checks" in err and "release-page" in err

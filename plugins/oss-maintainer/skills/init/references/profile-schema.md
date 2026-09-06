@@ -57,7 +57,7 @@ skill. `scripts/validate_profile.py` enforces it; this file explains it.
 | `[release].latest_promotion` | str | release (optional) | | free text: how the rolling channel moves |
 | `[release].notes_source` | path | release (optional) | | exists when set |
 | `[release].consumer_surfaces` | list | release (optional) | | what a breaking change can break: public exports, CLI flags, MCP tools, config keys |
-| `[release.gates].mandatory` | list | release | `["validator"]` | each name is a `[commands.*]` key or one of `image-gate`, `package-gate`, `bucket-c`, `notes-approved`, `security-alerts` |
+| `[release.gates].mandatory` | list | release | `["validator"]` | each name is a `[commands.*]` key or one of `image-gate`, `package-gate`, `owner-checks` (the owner's manual checks; `bucket-c` is the legacy name), `notes-approved`, `security-alerts` |
 | `[release.gates].optional` | list | release | `[]` | same resolution; reported with a status, never skipped silently |
 | `[release.gates].not_gates` | list | release (optional) | `[]` | checks that produce signal but never block; cannot overlap mandatory |
 | `[release.gates].alerts_policy` | str | release (optional) | | free text |
@@ -140,8 +140,8 @@ of every run and stored in the run record.
 | `.maintainer/PROFILE.md` | scope (own / do not own), tone, what must never be cited | every skill that writes public text |
 | `.maintainer/gotchas.md` | fragile areas and known issues, fed by retros | release, review-pr |
 | `.maintainer/triage.md` | repository-specific triage rules beyond the preset | triage |
-| `.maintainer/release/runbook.md` | exact commands for cut, publish, verify, cleanup | release |
-| `.maintainer/release/test-matrix.md` | the A/B/C matrix instantiated for this repository | release |
+| `.maintainer/release/runbook.md` | the release sequence and policy; commands stay referenced from the profile | release |
+| `.maintainer/release/test-matrix.md` | the recurring risks, seed of each release's coverage table | release |
 | `.maintainer/smoke/journey.md` | the product journey the smoke skill executes | smoke-e2e |
 | `.maintainer/decisions.md` | append-only log of release and Discussions decisions (optional) | release, process-discussions |
 | `.maintainer/state/` | gitignored run records and reports | every skill, on resumption |

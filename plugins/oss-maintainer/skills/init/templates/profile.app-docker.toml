@@ -26,7 +26,7 @@ publish_workflow = "TODO .github/workflows/<publish workflow>.yml, or remove thi
 latest_promotion = "TODO how the rolling tag moves, e.g. publication promotes latest"
 
 [release.gates]
-mandatory = ["validator", "image-gate", "bucket-c", "notes-approved"]
+mandatory = ["validator", "image-gate", "owner-checks", "notes-approved"]   # what each means: release/runbook.md
 optional = ["security-alerts"]
 merge_own_prs = "ask-once-per-session"      # ask-once-per-session | always-ask | never
 

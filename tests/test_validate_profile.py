@@ -143,7 +143,7 @@ def test_absolute_and_missing_paths_are_rejected(scratch: Path):
 def test_unknown_gate_and_bad_timeout_are_reported(scratch: Path):
     rewrite(
         scratch,
-        'mandatory = ["validator", "image-gate", "bucket-c", "notes-approved"]',
+        'mandatory = ["validator", "image-gate", "owner-checks", "notes-approved"]',
         'mandatory = ["validator", "typo-gate"]',
     )
     rewrite(scratch, 'timeout = "20m"', 'timeout = "twenty"')
