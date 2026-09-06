@@ -1,0 +1,45 @@
+plugins/oss-maintainer/skills/init/references/profile-schema.md
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 60,143-144
+docs/profile-reference.md
+  s_faee0f1d49c94e::t_9a3e62cb503842 63,146-147
+plugins/oss-maintainer/skills/init/scripts/validate_profile.py
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 76-77
+plugins/oss-maintainer/skills/init/templates/profile.pypi-library.toml
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 29
+tests/test_run_agreement.py
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 50,56,60
+plugins/oss-maintainer/evals/fixtures/app-docker/.maintainer/profile.toml
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 26
+plugins/oss-maintainer/evals/cases/review-pr-self-rule-change/scaffold.sh
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 10
+plugins/oss-maintainer/skills/init/templates/release/runbook.md
+  s_faee0f1d49c94e::t_0ae3d0fbd4efe7 3-7,9,11-14,16,18,22-23,25,27-28,30,32
+plugins/oss-maintainer/skills/init/templates/README.md
+  s_faee0f1d49c94e::t_982bd3d8b15954 5-10,14,18-19,21-22
+plugins/oss-maintainer/skills/init/templates/profile.app-docker.toml
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 29
+plugins/oss-maintainer/skills/init/SKILL.md
+  s_faee0f1d49c94e::t_9a3e62cb503842 57,59-64,66-70,72,78,81,83-88,90,95,100-110,112,124-127
+tests/test_validate_profile.py
+  s_faee0f1d49c94e::t_20a43f2cf2c642 146
+plugins/oss-maintainer/skills/init/templates/release/test-matrix.md
+  s_faee0f1d49c94e::t_46157e74ac7448 1,3-6,8,10,12-15
+plugins/oss-maintainer/evals/fixtures/pypi-library/.maintainer/profile.toml
+  s_faee0f1d49c94e::t_ef67c1d428dfdc 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "45fe1a384f3c4cafd9291b97aa64076a1b27572a",
+  "prompts": {},
+  "sessions": {
+    "s_faee0f1d49c94e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69ad6050-96d5-4a41-ae6b-66709fc7be9b",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
