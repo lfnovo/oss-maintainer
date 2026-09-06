@@ -10,4 +10,4 @@ context:
   scaffold_script: "./scaffold.sh"
 ---
 
-/oss-maintainer:release Prepare release 2.4.0 of this repository. The profile's distribution trigger is still TODO: detect and confirm it with me, then run phases 0 to 9 as far as you can without external services (skip network-dependent checks as not-run with a reason) and stop at the GO. I will answer the GO in the next turn; do not create or push any tag.
+/oss-maintainer:release Prepare release 2.4.0 of this repository. The profile's distribution trigger is still TODO: detect and confirm it with me, then run steps 1 to 3 (scope and coverage, validate, cut) as far as you can without external services (skip network-dependent checks as not-run with a reason) and stop at step 4, the GO. I will answer the GO in the next turn; do not create or push any tag.

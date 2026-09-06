@@ -1,6 +1,6 @@
 # Release notes, credits and announcements
 
-Notes are approved before anything irreversible happens (phase 8 precedes the GO). Write them
+Notes are approved before anything irreversible happens (step 3 precedes the GO). Write them
 in `[comms].public_language`. When the platform has a structured notes source
 (`[release].notes_source`, such as GitHub's `release.yml` categories with `--generate-notes`),
 use it for the skeleton and the contributor list, then edit.

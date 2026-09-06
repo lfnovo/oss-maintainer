@@ -4,12 +4,12 @@ The project ships something the built-in archetypes do not describe, and
 `.maintainer/release/runbook.md` states the exact commands for building, gating, publishing
 and verifying it.
 
-The phases, the gates, the check vocabulary and the ordering rule apply unchanged:
+The steps, the gates, the check vocabulary and the ordering rule apply unchanged:
 
 - The runbook's gate section is the artifact gate; it must produce a recorded identity
   (a digest, a checksum, a manifest) for what was tested.
 - `[release].distribution_trigger` is still the first action that can start distribution and
-  still runs only in phase 10 after the GO.
+  still runs only in step 5 after the GO.
 - Post-publish verification uses the runbook's verification section and compares identities.
 
 When the runbook lacks a gate or a verification section, `release` is incomplete for this

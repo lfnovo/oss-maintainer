@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
-"""Create, update and read run records under `.maintainer/state/runs/`.
+"""One record per release (or smoke run) under `.maintainer/state/runs/`.
 
-A run record makes a release (or a smoke run) resumable and auditable: candidate, checks with
-their status and evidence, authorizations with their scope, commands, verdict.
+The record is a result of the work, not a condition for it: the agent writes down what ran,
+what the maintainer decided and what was published, so the next session resumes from facts.
+Existing logs, CI runs and digests are the evidence; the record links to them.
 
 Usage:
-  run_record.py new --root R --skill release --version V [--commit SHA] [--engine-version X]
-  run_record.py update RECORD --phase NAME [--status S] [--check name=status[:evidence]]...
-  run_record.py authorize RECORD --scope TEXT --candidate SHA [--by WHO]
-  run_record.py candidate RECORD --commit SHA [--version V]     # invalidates affected dependencies
-  run_record.py digest RECORD --name REF --value DIGEST [--published]
-  run_record.py latest --root R --skill release [--version V]
-  run_record.py pending RECORD
+  run_record.py new  --root R --version V [--commit SHA] [--trigger TEXT] [--repo O/N]
+                     [--mandatory NAME[:pre|post]]... [--optional NAME[:pre|post]]...
+  run_record.py set  RECORD [--commit SHA] [--version V] [--trigger TEXT]
+                     [--digest NAME=DIGEST]... [--published NAME=DIGEST]...
+                     [--check NAME=STATUS[:EVIDENCE]]... [--on source|artifact:NAME]
+                     [--mandatory|--optional] [--stage pre|post] [--probe TEXT] [--expect TEXT]
+                     [--reuse-from CHECK_ID --reason TEXT]
+                     [--waive NAME --reason TEXT] [--approve ACTION --scope TEXT [--conditions TEXT]]
+                     [--by WHO] [--note TEXT] [--python PATH]
+  run_record.py show RECORD [--json]            # or: show --root R [--version V]
   run_record.py finish RECORD --verdict GO|NO-GO|aborted [--note TEXT]
+
+Statuses: passed, failed, not-run, not-applicable. A mandatory check blocks until it is
+`passed` with evidence or explicitly waived by a recorded decision; an optional check never
+blocks. `show` and `finish` apply that one rule and name the same items.
 
 Requires Python 3.11+. Standard library only.
 """
@@ -20,13 +28,13 @@ Requires Python 3.11+. Standard library only.
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
 import hashlib
 import json
-import uuid
 import re
-import tomllib
 import sys
+import tomllib
+import uuid
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -34,27 +42,18 @@ if sys.version_info < (3, 11):  # pragma: no cover
     sys.stderr.write("run_record.py needs Python 3.11 or newer.\n")
     sys.exit(2)
 
-PHASES = [
-    "scope",
-    "version",
-    "matrix",
-    "bucket-a",
-    "artifact-gate",
-    "bucket-c",
-    "fix-loop",
-    "cut",
-    "notes",
-    "go",
-    "publish",
-    "verify",
-    "announce",
-    "cleanup",
-    "retro",
-]
-TRIGGER_PHASE = "publish"
-GO_PHASE = "go"
+SCHEMA = 3
 STATUSES = {"passed", "failed", "not-run", "not-applicable"}
+STAGES = {"pre", "post"}
 VERDICTS = {"GO", "NO-GO", "aborted"}
+PUBLICATION = "publication"
+POST_CHECKS = ("publish", "verify", "announce", "cleanup")
+RELEASE_DEFAULTS = {
+    "mandatory": [("validator", "pre"), ("publish", "post"), ("verify", "post")],
+    "optional": [("announce", "post"), ("cleanup", "post")],
+}
+# Names a schema-1/2 phase maps to when a legacy record is read.
+LEGACY_POST_PHASES = {"publish", "verify", "announce", "cleanup"}
 
 
 def now() -> str:
@@ -63,33 +62,6 @@ def now() -> str:
 
 def runs_dir(root: Path) -> Path:
     return root / ".maintainer" / "state" / "runs"
-
-
-def load(path: Path) -> dict:
-    record = json.loads(path.read_text(encoding="utf-8"))
-    if record.get("schema") not in {1, 2}:
-        raise ValueError("unsupported run-record schema")
-    # Reading does not rewrite history. The next mutation persists the additive migration.
-    if record["schema"] == 1:
-        record["schema"] = 2
-        record["legacy_schema"] = 1
-    record.setdefault("events", [])
-    record.setdefault(
-        "delivery",
-        {
-            "status": "unknown" if record.get("finished_at") else "pending",
-            "required_phases": ["publish", "verify", "announce", "cleanup"],
-            "required_checks": [],
-            "retrospective": "pending",
-        },
-    )
-    return record
-
-
-def save(path: Path, record: dict) -> None:
-    path.write_text(
-        json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
 
 
 def profile_hash(root: Path) -> str | None:
@@ -103,16 +75,256 @@ def profile_hash(root: Path) -> str | None:
     return "sha256:" + digest.hexdigest()
 
 
-def phase(record: dict, name: str) -> dict:
-    for entry in record["phases"]:
-        if entry["name"] == name:
-            return entry
-    entry = {"name": name, "status": "not-run", "checks": [], "authorizations": []}
-    record["phases"].append(entry)
-    record["phases"].sort(
-        key=lambda p: PHASES.index(p["name"]) if p["name"] in PHASES else len(PHASES)
+def event(record: dict, kind: str, **fields) -> dict:
+    item = {"id": uuid.uuid4().hex, "kind": kind, "at": now(), **fields}
+    record.setdefault("events", []).append(item)
+    return item
+
+
+# ----------------------------------------------------------------------------- loading
+
+
+def load(path: Path) -> dict:
+    record = json.loads(path.read_text(encoding="utf-8"))
+    schema = record.get("schema")
+    if schema not in {1, 2, SCHEMA}:
+        raise ValueError("unsupported run-record schema")
+    if schema != SCHEMA:
+        record = migrate_legacy(record)
+    record.setdefault("checks", [])
+    record.setdefault("approvals", [])
+    record.setdefault("notes", [])
+    record.setdefault("events", [])
+    record.setdefault("superseded", [])
+    record.setdefault("published", {"digests": {}})
+    record["candidate"].setdefault("digests", {})
+    record["candidate"].setdefault("trigger", None)
+    record.setdefault("engine", {}).setdefault("python", None)
+    record.setdefault("delivery", {"status": "pending"})
+    return record
+
+
+def migrate_legacy(record: dict) -> dict:
+    """Read a schema-1/2 record in memory. Nothing is inferred; phases stay as history."""
+    legacy = record.get("schema")
+    record["legacy_schema"] = legacy
+    record["schema"] = SCHEMA
+    checks: list[dict] = []
+    approvals: list[dict] = []
+    for phase in record.get("phases", []):
+        stage = "post" if phase.get("name") in LEGACY_POST_PHASES else "pre"
+        for check in phase.get("checks", []):
+            checks.append(
+                {
+                    "id": check.get("id") or uuid.uuid4().hex,
+                    "name": check["name"],
+                    "status": check.get("status", "not-run"),
+                    "evidence": check.get("evidence"),
+                    "at": check.get("at"),
+                    "stage": stage,
+                    "mandatory": True,
+                    # Legacy checks were candidate-bound: a new commit invalidates them.
+                    "on": check.get("dependencies")
+                    or ({"source": record["candidate"].get("commit")} if record["candidate"].get("commit") else {}),
+                    "probe": None,
+                    "expect": None,
+                    "reused_from": None,
+                    "waiver": None,
+                    "legacy_phase": phase.get("name"),
+                }
+            )
+        for grant in phase.get("authorizations", []):
+            approvals.append(
+                {
+                    "id": grant.get("id") or uuid.uuid4().hex,
+                    "action": grant.get("kind", PUBLICATION),
+                    "scope": grant.get("scope"),
+                    "conditions": grant.get("conditions"),
+                    "by": grant.get("by"),
+                    "at": grant.get("granted_at"),
+                    "binds": grant.get("identity")
+                    or ({"commit": grant["candidate"]} if grant.get("candidate") else None),
+                    "revoked": bool(grant.get("revoked")),
+                    "legacy": True,
+                }
+            )
+    record["checks"] = checks
+    record["approvals"] = approvals
+    notes = []
+    for note in record.get("notes", []):
+        notes.append(note if isinstance(note, dict) else {"at": None, "text": str(note)})
+    record["notes"] = notes
+    delivery = record.get("delivery") or {}
+    status = delivery.get("status")
+    if status not in {"completed", "blocked", "aborted"}:
+        status = "unknown" if record.get("finished_at") else "pending"
+    record["delivery"] = {"status": status}
+    return record
+
+
+def save(path: Path, record: dict) -> None:
+    path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+# ----------------------------------------------------------------------------- rules
+
+
+def find_check(record: dict, name: str) -> dict | None:
+    return next((c for c in record["checks"] if c["name"] == name), None)
+
+
+def outstanding(record: dict, stage: str | None = None) -> list[dict]:
+    """The single completion rule: mandatory checks not passed with evidence, unless waived."""
+    items = []
+    for check in record["checks"]:
+        if stage and check.get("stage") != stage:
+            continue
+        if not check.get("mandatory"):
+            continue
+        if check.get("waiver"):
+            continue
+        if check["status"] == "passed" and check.get("evidence"):
+            continue
+        if check["status"] == "passed":
+            reason = "passed without evidence"
+        elif check["status"] == "not-applicable":
+            reason = "mandatory check marked not-applicable: pass it or record a waiver decision"
+        elif check["status"] == "failed":
+            reason = "failed"
+        else:
+            reason = "not run"
+        items.append(
+            {"check": check["name"], "stage": check.get("stage"), "status": check["status"], "reason": reason}
+        )
+    return items
+
+
+def identity(record: dict) -> dict:
+    c = record["candidate"]
+    return {
+        "commit": c.get("commit"),
+        "version": c.get("version"),
+        "trigger": c.get("trigger"),
+        "digests": deepcopy(c.get("digests", {})),
+    }
+
+
+def approval_valid(approval: dict, record: dict) -> bool:
+    if approval.get("revoked"):
+        return False
+    if approval.get("action") != PUBLICATION:
+        return True
+    binds = approval.get("binds") or {}
+    if approval.get("legacy"):
+        return binds.get("commit") == record["candidate"].get("commit") and bool(binds)
+    if record.get("root") and profile_hash(Path(record["root"])) != record.get("profile_hash"):
+        return False
+    return binds == identity(record)
+
+
+def publication_approval(record: dict) -> dict | None:
+    return next(
+        (a for a in reversed(record["approvals"]) if a.get("action") == PUBLICATION and approval_valid(a, record)),
+        None,
     )
-    return entry
+
+
+def check_holds(check: dict, record: dict) -> bool:
+    on = check.get("on") or {}
+    candidate = record["candidate"]
+    for key, value in on.items():
+        if key == "source":
+            if candidate.get("commit") != value:
+                return False
+        elif key.startswith("artifact:"):
+            if candidate.get("digests", {}).get(key.split(":", 1)[1]) != value:
+                return False
+        elif key == "candidate":
+            if value != identity(record):
+                return False
+    return True
+
+
+def supersede_candidate(record: dict, new: dict, reason: str) -> int:
+    """Apply a candidate identity change: keep history, reset dependent evidence and publication approval."""
+    old = identity(record)
+    if new == old:
+        return 0
+    replaced = any(old[k] != new[k] for k in ("commit", "version", "trigger")) or any(
+        old["digests"].get(name) not in (None, value) for name, value in new["digests"].items()
+    )
+    if not replaced:
+        # Only new artifact identities were added: nothing tested so far is contradicted.
+        record["candidate"].update(new)
+        for approval in record["approvals"]:
+            if approval.get("action") == PUBLICATION and not approval.get("revoked") and not approval_valid(approval, record):
+                approval["revoked"] = True
+                approval["revoked_reason"] = reason
+                event(record, "approval-revoked", approval_id=approval["id"], reason=reason)
+        event(record, "candidate-enriched", reason=reason, identity=identity(record))
+        return 0
+    record["superseded"].append(
+        {"at": now(), "reason": reason, "candidate": old, "verdict": record.get("verdict"), "finished_at": record.get("finished_at")}
+    )
+    record["candidate"].update(new)
+    reset = 0
+    for check in record["checks"]:
+        if check["status"] == "not-run":
+            continue
+        if not check_holds(check, record):
+            event(record, "check-invalidated", check=deepcopy(check), reason=reason)
+            check["status"] = "not-run"
+            check["invalidated_by"] = reason
+            check["evidence"] = None
+            reset += 1
+    for approval in record["approvals"]:
+        if approval.get("action") == PUBLICATION and not approval.get("revoked") and not approval_valid(approval, record):
+            approval["revoked"] = True
+            approval["revoked_reason"] = reason
+            event(record, "approval-revoked", approval_id=approval["id"], reason=reason)
+    record["published"] = {"digests": {}}
+    record["verdict"] = None
+    record["finished_at"] = None
+    record["delivery"]["status"] = "pending"
+    event(record, "candidate-changed", reason=reason, previous=old, identity=identity(record))
+    return reset
+
+
+# ----------------------------------------------------------------------------- commands
+
+
+def parse_named(specs: list[str] | None, default_stage: str) -> list[tuple[str, str]]:
+    out = []
+    for spec in specs or []:
+        name, _, stage = spec.partition(":")
+        stage = stage or default_stage
+        if not name.strip() or stage not in STAGES:
+            raise ValueError(f"invalid check declaration: {spec} (NAME or NAME:pre|post)")
+        out.append((name, stage))
+    return out
+
+
+def seed_check(record: dict, name: str, stage: str, mandatory: bool) -> None:
+    existing = find_check(record, name)
+    if existing:
+        existing["mandatory"] = existing["mandatory"] or mandatory
+        return
+    record["checks"].append(
+        {
+            "id": uuid.uuid4().hex,
+            "name": name,
+            "status": "not-run",
+            "evidence": None,
+            "at": None,
+            "stage": stage,
+            "mandatory": mandatory,
+            "on": {},
+            "probe": None,
+            "expect": None,
+            "reused_from": None,
+            "waiver": None,
+        }
+    )
 
 
 def cmd_new(args) -> int:
@@ -125,495 +337,301 @@ def cmd_new(args) -> int:
     while path.exists():
         suffix += 1
         path = directory / f"{stamp}-{suffix}-{args.skill}.json"
-    required_phases = list(
-        dict.fromkeys(
-            (
-                ["publish", "verify", "announce", "cleanup"]
-                if args.skill == "release"
-                else []
-            )
-            + (args.required_phase or [])
-        )
-    )
-    required_checks = (["validator"] if args.skill == "release" else []) + list(
-        args.required_check or []
-    )
-    profile_path = root / ".maintainer" / "profile.toml"
-    if args.skill == "release" and profile_path.exists():
-        profile = tomllib.loads(profile_path.read_text())
-        required_checks += (
-            profile.get("release", {}).get("gates", {}).get("mandatory", ["validator"])
-        )
     record = {
-        "schema": 2,
+        "schema": SCHEMA,
         "skill": args.skill,
         "id": path.stem,
         "started_at": now(),
         "finished_at": None,
-        "engine": {
-            "plugin": "oss-maintainer",
-            "version": args.engine_version,
-            "resolution": args.resolution,
-        },
+        "engine": {"plugin": "oss-maintainer", "version": args.engine_version, "python": args.python},
         "repo": args.repo,
-        "candidate": {"version": args.version, "commit": args.commit, "digests": {}},
-        "published": {"digests": {}},
-        "superseded": [],
-        "profile_hash": profile_hash(root),
         "root": str(root),
-        "overlay_diff": [],
-        "phases": [],
-        "commands": [],
-        "items": [],
-        "verdict": None,
+        "profile_hash": profile_hash(root),
+        "candidate": {"version": args.version, "commit": args.commit, "trigger": args.trigger, "digests": {}},
+        "published": {"digests": {}},
+        "checks": [],
+        "approvals": [],
         "notes": [],
+        "superseded": [],
         "events": [],
-        "delivery": {
-            "status": "pending",
-            "required_phases": required_phases,
-            "required_checks": list(dict.fromkeys(required_checks)),
-            "retrospective": "pending",
-        },
+        "verdict": None,
+        "delivery": {"status": "pending"},
     }
+    mandatory = parse_named(args.mandatory, "pre")
+    optional = parse_named(args.optional, "pre")
+    if args.skill == "release":
+        mandatory = list(RELEASE_DEFAULTS["mandatory"]) + mandatory
+        optional = list(RELEASE_DEFAULTS["optional"]) + optional
+        profile = root / ".maintainer" / "profile.toml"
+        if profile.exists():
+            gates = tomllib.loads(profile.read_text(encoding="utf-8")).get("release", {}).get("gates", {})
+            mandatory += [(name, "pre") for name in gates.get("mandatory", [])]
+            optional += [(name, "pre") for name in gates.get("optional", []) + gates.get("not_gates", [])]
+    for name, stage in optional:
+        seed_check(record, name, stage, mandatory=False)
+    for name, stage in mandatory:
+        seed_check(record, name, stage, mandatory=True)
     save(path, record)
     print(path)
     return 0
 
 
-def event(record: dict, kind: str, **fields) -> dict:
-    item = {"id": uuid.uuid4().hex, "kind": kind, "recorded_at": now(), **fields}
-    record.setdefault("events", []).append(item)
-    return item
+def parse_check(spec: str) -> tuple[str, str, str | None]:
+    name, sep, rest = spec.partition("=")
+    status, _, evidence = rest.partition(":")
+    if not sep or not name.strip() or status not in STATUSES:
+        raise ValueError(f"invalid check: {spec} (NAME=STATUS[:EVIDENCE])")
+    return name.strip(), status, evidence or None
 
 
-def dependencies(record: dict, specs: list[str] | None) -> dict:
-    candidate = record["candidate"]
-    result = {}
-    for spec in specs or ["candidate"]:
-        if spec == "source":
-            if not candidate.get("commit"):
-                raise ValueError("source evidence requires a commit")
-            result[spec] = candidate["commit"]
-        elif spec == "candidate":
-            result[spec] = deepcopy(candidate)
-        elif spec.startswith("artifact:"):
-            name = spec.split(":", 1)[1]
-            if not candidate["digests"].get(name):
-                raise ValueError(f"record the tested artifact identity first: {name}")
-            result[spec] = candidate["digests"][name]
-        else:
-            raise ValueError(f"unknown dependency: {spec}")
-    return result
+def parse_pair(spec: str, what: str) -> tuple[str, str]:
+    name, sep, value = spec.partition("=")
+    if not sep or not name.strip() or not value.strip():
+        raise ValueError(f"--{what} requires NAME=VALUE")
+    return name.strip(), value.strip()
 
 
-def matches(deps: dict, candidate: dict) -> bool:
-    for name, value in deps.items():
-        actual = (
-            candidate
-            if name == "candidate"
-            else candidate.get("commit")
-            if name == "source"
-            else candidate.get("digests", {}).get(name.split(":", 1)[1])
-        )
-        if actual != value:
-            return False
-    return True
-
-
-def command_records(args) -> list[dict]:
-    commands = []
-    for spec in args.command or []:
-        run, sep, status = spec.rpartition("=")
-        if not sep or not run.strip() or not re.fullmatch(r"-?\d+", status):
-            raise ValueError(
-                "--command requires nonempty COMMAND=INTEGER_EXIT_STATUS; repeat for multiple commands"
-            )
-        commands.append(
-            {
-                "id": uuid.uuid4().hex,
-                "run": run,
-                "exit": int(status),
-                "at": now(),
-                "recorded_at": now(),
-                "executed_at": args.executed_at,
-                "cwd": args.cwd,
-                "log": args.log,
-            }
-        )
-    if args.executed_at:
-        timestamp(args.executed_at)
-    if args.executed_at and not commands:
-        raise ValueError("--executed-at requires --command")
-    return commands
-
-
-def timestamp(value: str) -> datetime:
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        raise ValueError("timestamp must include a timezone")
-    return parsed
-
-
-def cmd_update(args) -> int:
+def cmd_set(args) -> int:
     path = Path(args.record)
     record = load(path)
-    commands = command_records(args)  # validate before any disk mutation
-    if args.digest:
-        candidate = deepcopy(record["candidate"])
-        for spec in args.digest:
-            name, sep, value = spec.partition("=")
-            if not sep or not name.strip() or not value.strip():
-                raise ValueError("--digest requires NAME=DIGEST")
-            candidate["digests"][name] = value
-        invalidate_candidate(
-            record, candidate, "artifact identity registered with evidence"
-        )
-    deps = dependencies(record, args.depends_on)
-    entry = phase(record, args.phase)
-    if args.status:
-        entry["status"] = args.status
-    for spec in args.check or []:
-        name, _, rest = spec.partition("=")
-        status, _, evidence = rest.partition(":")
-        if not name.strip() or status not in STATUSES:
-            raise ValueError(f"invalid check: {spec}")
-        previous = [c for c in entry["checks"] if c["name"] == name]
-        if previous:
-            event(
-                record,
-                "check-superseded",
-                phase=args.phase,
-                check=deepcopy(previous[0]),
-            )
-        entry["checks"] = [c for c in entry["checks"] if c["name"] != name]
-        check = {
+    if record.get("legacy_schema"):
+        event(record, "schema-upgraded", from_schema=record["legacy_schema"])
+
+    # Validate everything before touching the record.
+    checks = [parse_check(s) for s in args.check or []]
+    digests = [parse_pair(s, "digest") for s in args.digest or []]
+    published = [parse_pair(s, "published") for s in args.published or []]
+    if args.mandatory and args.optional:
+        raise ValueError("--mandatory and --optional are exclusive")
+    if args.stage and args.stage not in STAGES:
+        raise ValueError("--stage must be pre or post")
+    if args.on and args.on != "source" and not args.on.startswith("artifact:"):
+        raise ValueError("--on must be source or artifact:NAME")
+    if (args.reuse_from or args.waive) and not args.reason:
+        raise ValueError("--reuse-from and --waive require --reason")
+    if args.reuse_from and len(checks) != 1:
+        raise ValueError("--reuse-from applies to exactly one --check")
+    if args.approve and not (args.scope or "").strip():
+        raise ValueError("--approve requires a non-empty --scope")
+    if args.approve == PUBLICATION and not record["candidate"].get("commit"):
+        raise ValueError("publication approval requires a candidate commit")
+
+    # 1. Candidate identity.
+    new = identity(record)
+    reasons = []
+    if args.commit and args.commit != new["commit"]:
+        new["commit"] = args.commit
+        new["digests"] = {}
+        reasons.append(f"commit {args.commit}")
+    if args.version and args.version != new["version"]:
+        new["version"] = args.version
+        reasons.append(f"version {args.version}")
+    if args.trigger and args.trigger != new["trigger"]:
+        new["trigger"] = args.trigger
+        reasons.append(f"trigger {args.trigger!r}")
+    for name, value in digests:
+        if new["digests"].get(name) != value:
+            new["digests"][name] = value
+            reasons.append(f"digest {name}")
+    reset = supersede_candidate(record, new, "candidate changed: " + ", ".join(reasons)) if reasons else 0
+
+    # 2. Checks.
+    if args.on and args.on.startswith("artifact:"):
+        artifact = args.on.split(":", 1)[1]
+        if not record["candidate"]["digests"].get(artifact):
+            raise ValueError(f"record the tested artifact identity first: {artifact}")
+    source_of_reuse = None
+    if args.reuse_from:
+        # The original result lives in the event history once it was invalidated or superseded.
+        candidates = [
+            e["check"]
+            for e in record["events"]
+            if e.get("kind") in {"check-invalidated", "check-superseded"} and e["check"].get("id") == args.reuse_from
+        ] + [c for c in record["checks"] if c["id"] == args.reuse_from]
+        source_of_reuse = next((c for c in candidates if c.get("status") == "passed" and c.get("evidence")), None)
+        if not source_of_reuse:
+            raise ValueError("--reuse-from must name an earlier passed check with evidence")
+    for name, status, evidence in checks:
+        existing = find_check(record, name)
+        if existing and existing["status"] != "not-run":
+            event(record, "check-superseded", check=deepcopy(existing))
+        on = {}
+        if args.on == "source":
+            if not record["candidate"].get("commit"):
+                raise ValueError("source evidence requires a candidate commit")
+            on = {"source": record["candidate"]["commit"]}
+        elif args.on:
+            artifact = args.on.split(":", 1)[1]
+            on = {args.on: record["candidate"]["digests"][artifact]}
+        elif status != "not-run":
+            on = {"source": record["candidate"]["commit"]} if record["candidate"].get("commit") else {}
+        stage = args.stage or (existing or {}).get("stage") or ("post" if name in POST_CHECKS else "pre")
+        mandatory = True if args.mandatory else False if args.optional else (existing or {}).get("mandatory", False)
+        entry = {
             "id": uuid.uuid4().hex,
             "name": name,
             "status": status,
-            "evidence": evidence or None,
-            "at": now(),
-            "dependencies": deps,
-            "execution_ids": [c["id"] for c in commands],
+            "evidence": evidence,
+            "at": now() if status != "not-run" else None,
+            "stage": stage,
+            "mandatory": mandatory,
+            "on": on,
+            "probe": args.probe or (existing or {}).get("probe"),
+            "expect": args.expect or (existing or {}).get("expect"),
+            "reused_from": None,
+            "waiver": (existing or {}).get("waiver") if status != "passed" else None,
         }
-        entry["checks"].append(check)
-        event(record, "check-recorded", phase=args.phase, check=deepcopy(check))
-    record["commands"].extend(commands)
-    if args.phase != "retro" and record.get("finished_at"):
-        event(
-            record,
-            "delivery-reopened",
-            reason="new delivery observation",
-            phase=args.phase,
-        )
-        record["finished_at"] = None
-        record["verdict"] = None
-        record["delivery"]["status"] = "pending"
-    if args.phase == "retro" and args.status:
-        record["delivery"]["retrospective"] = args.status
-    save(path, record)
-    print(f"{args.phase}: {entry['status']}")
-    return 0
+        if source_of_reuse:
+            entry["reused_from"] = {
+                "id": source_of_reuse["id"],
+                "at": source_of_reuse.get("at"),
+                "on": deepcopy(source_of_reuse.get("on")),
+                "evidence": source_of_reuse.get("evidence"),
+                "reason": args.reason,
+            }
+            entry["evidence"] = evidence or source_of_reuse.get("evidence")
+        if existing:
+            record["checks"][record["checks"].index(existing)] = entry
+        else:
+            record["checks"].append(entry)
+        event(record, "check-recorded", check=deepcopy(entry))
+        if record.get("finished_at") and stage == "post":
+            event(record, "delivery-reopened", check=name)
+            record["finished_at"] = None
+            record["verdict"] = None
+            record["delivery"]["status"] = "pending"
 
+    # 3. Waiver: a decision, recorded next to the original result.
+    if args.waive:
+        target = find_check(record, args.waive)
+        if not target:
+            raise ValueError(f"unknown check: {args.waive}")
+        target["waiver"] = {"by": args.by, "at": now(), "reason": args.reason, "status_at_waiver": target["status"]}
+        event(record, "check-waived", check=args.waive, by=args.by, reason=args.reason)
 
-def cmd_revalidate(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    entry = phase(record, args.phase)
-    check = next((c for c in entry["checks"] if c.get("id") == args.evidence_id), None)
-    if not check or not check.get("dependencies"):
-        raise ValueError(
-            "revalidation requires an existing identified check with explicit dependencies"
-        )
-    if not matches(check["dependencies"], record["candidate"]) or check.get(
-        "invalidated_by"
-    ):
-        raise ValueError(
-            "evidence dependencies changed; execute the affected check again"
-        )
-    event(
-        record,
-        "evidence-revalidated",
-        evidence_id=check["id"],
-        reason=args.reason,
-        identity=deepcopy(record["candidate"]),
-    )
-    save(path, record)
-    print(check["id"])
-    return 0
-
-
-def cmd_authorize(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    if not args.scope.strip():
-        raise ValueError("authorization scope must not be empty")
-    kind = args.kind
-    if kind == "publication" and (
-        not args.candidate or args.candidate != record["candidate"]["commit"]
-    ):
-        print(
-            "publication authorization must name the current candidate", file=sys.stderr
-        )
-        return 1
-    if record.get("root") and profile_hash(Path(record["root"])) != record.get(
-        "profile_hash"
-    ):
-        raise ValueError(
-            "profile changed; start a new agreement/run before authorizing"
-        )
-    if kind != "publication" and not args.conditions:
-        raise ValueError("action-scoped approval requires explicit --conditions")
-    if kind == "notes" and not args.subject:
-        raise ValueError(
-            "notes approval requires --subject (hash of approved text and factual context)"
-        )
-    if args.limit is not None and args.limit < 1:
-        raise ValueError("authorization limit must be positive")
-    if args.expires_at:
-        if timestamp(args.expires_at) <= datetime.now(timezone.utc):
-            raise ValueError("authorization already expired")
-    approval = {
-        "id": uuid.uuid4().hex,
-        "kind": kind,
-        "scope": args.scope,
-        "conditions": args.conditions,
-        "resources": args.resource or [],
-        "subject": args.subject,
-        "limit": args.limit,
-        "used": 0,
-        "expires_at": args.expires_at,
-        "repo": record.get("repo"),
-        "run_id": record["id"],
-        "profile_hash": record.get("profile_hash"),
-        "granted_at": now(),
-        "by": args.by,
-    }
-    if kind in {"publication", "notes"}:
-        approval.update(
-            candidate=record["candidate"]["commit"],
-            identity=deepcopy(record["candidate"]),
-        )
-    phase(record, args.phase)["authorizations"].append(approval)
-    event(record, "authorization-granted", authorization=deepcopy(approval))
-    save(path, record)
-    print(approval["id"])
-    return 0
-
-
-def approval_valid(approval: dict, record: dict) -> bool:
-    if approval.get("revoked"):
-        return False
-    if record.get("root") and profile_hash(Path(record["root"])) != record.get(
-        "profile_hash"
-    ):
-        return False
-    if approval.get("expires_at") and timestamp(approval["expires_at"]) <= datetime.now(
-        timezone.utc
-    ):
-        return False
-    if (
-        approval.get("limit") is not None
-        and approval.get("used", 0) >= approval["limit"]
-    ):
-        return False
-    if approval.get("kind") == "notes":
-        return bool(
-            approval.get("subject")
-            and approval.get("identity")
-            and all(
-                approval["identity"].get(k) == record["candidate"].get(k)
-                for k in ("commit", "version")
-            )
-        )
-    if approval.get("kind") in {"merge", "tests"}:
-        return approval.get("run_id") == record["id"] and approval.get(
-            "profile_hash"
-        ) == record.get("profile_hash")
-    return bool(
-        approval.get("identity") and approval["identity"] == record["candidate"]
-    )
-
-
-def cmd_permissions(args) -> int:
-    record = load(Path(args.record))
-    print(
-        json.dumps(
-            [
-                {**a, "valid": approval_valid(a, record)}
-                for p in record["phases"]
-                for a in p["authorizations"]
-            ],
-            indent=2,
-        )
-    )
-    return 0
-
-
-def cmd_consume(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    approval = next(
-        (
-            a
-            for p in record["phases"]
-            for a in p["authorizations"]
-            if a.get("id") == args.authorization
-        ),
-        None,
-    )
-    if not approval or not approval_valid(approval, record):
-        raise ValueError("approval missing, expired, revoked or no longer applicable")
-    if args.units < 1 or (
-        approval.get("limit") is not None
-        and approval.get("used", 0) + args.units > approval["limit"]
-    ):
-        raise ValueError("execution exceeds authorized limit")
-    approval["used"] = approval.get("used", 0) + args.units
-    event(
-        record,
-        "authorization-consumed",
-        authorization_id=approval["id"],
-        units=args.units,
-        reason=args.reason,
-    )
-    save(path, record)
-    print(approval["used"])
-    return 0
-
-
-def invalidate_candidate(record: dict, candidate: dict, reason: str) -> int:
-    """Supersede candidate-bound evidence without losing its original status or identity."""
-    if candidate == record["candidate"]:
-        return 0
-    record.setdefault("superseded", []).append(
-        {
+    # 4. Approval.
+    if args.approve:
+        approval = {
+            "id": uuid.uuid4().hex,
+            "action": args.approve,
+            "scope": args.scope,
+            "conditions": args.conditions,
+            "by": args.by,
             "at": now(),
-            "reason": reason,
-            **deepcopy(
-                {
-                    key: record.get(key)
-                    for key in (
-                        "candidate",
-                        "phases",
-                        "published",
-                        "verdict",
-                        "finished_at",
-                    )
-                }
-            ),
+            "binds": identity(record) if args.approve == PUBLICATION else None,
+            "revoked": False,
         }
-    )
-    previous = record["candidate"]
-    record["candidate"] = candidate
-    record["verdict"] = None
-    record["finished_at"] = None
-    record["delivery"]["status"] = "pending"
-    record["published"] = {"digests": {}}
-    reset = 0
-    for entry in record["phases"]:
-        for approval in entry["authorizations"]:
-            # Old permissions have no proven action scope; remain conservative.
-            if approval.get("kind") not in {"merge", "tests"}:
-                if approval.get("kind") != "notes" or not approval_valid(
-                    approval, record
-                ):
-                    approval["revoked"] = True
-        affected = False
-        for check in entry["checks"]:
-            deps = check.get("dependencies", {"candidate": previous})
-            if not matches(deps, candidate):
-                check["status"] = "not-run"
-                check["invalidated_by"] = candidate["commit"]
-                affected = True
-                reset += 1
-        if affected or (
-            not entry["checks"] and entry["name"] not in {"scope", "version", "matrix"}
-        ):
-            entry["status"] = "not-run"
-    event(
-        record,
-        "candidate-changed",
-        reason=reason,
-        previous=deepcopy(previous),
-        identity=deepcopy(candidate),
-    )
-    record["notes"].append(f"{now()} {reason}; {reset} checks reset")
-    return reset
+        record["approvals"].append(approval)
+        event(record, "approval-recorded", approval=deepcopy(approval))
 
+    # 5. Observations, published identity, environment.
+    for name, value in published:
+        record["published"]["digests"][name] = value
+    for text in args.note or []:
+        record["notes"].append({"at": now(), "text": text})
+    if args.python:
+        record["engine"]["python"] = args.python
 
-def cmd_candidate(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    candidate = deepcopy(record["candidate"])
-    candidate["commit"] = args.commit
-    if args.version:
-        candidate["version"] = args.version
-    if candidate != record["candidate"]:
-        candidate["digests"] = {}
-    reset = invalidate_candidate(
-        record,
-        candidate,
-        f"candidate changed to {args.commit} / {candidate['version']}",
-    )
     save(path, record)
-    print(f"candidate {args.commit}; {reset} checks reset to not-run")
+    summary = []
+    if reset:
+        summary.append(f"{reset} checks reset")
+    for name, status, _ in checks:
+        summary.append(f"{name}: {status}")
+    if args.approve:
+        summary.append(f"approved: {args.approve}")
+    print("; ".join(summary) or "ok")
     return 0
 
 
-def cmd_digest(args) -> int:
-    path = Path(args.record)
-    record = load(path)
-    if not args.name.strip() or not args.value.strip():
-        raise ValueError("digest name and value must not be empty")
-    if args.published:
-        record.setdefault("published", {"digests": {}})["digests"][args.name] = (
-            args.value
-        )
-    else:
-        candidate = deepcopy(record["candidate"])
-        candidate["digests"][args.name] = args.value
-        invalidate_candidate(
-            record, candidate, f"candidate digest changed: {args.name}"
-        )
-    save(path, record)
-    print(f"{args.name}: {args.value}")
-    return 0
-
-
-def cmd_latest(args) -> int:
-    root = Path(args.root).resolve()
-    candidates = sorted(runs_dir(root).glob(f"*-{args.skill}.json"), reverse=True)
-    for path in candidates:
+def latest(root: Path, skill: str, version: str | None) -> Path | None:
+    for path in sorted(runs_dir(root).glob(f"*-{skill}.json"), reverse=True):
         record = load(path)
-        if args.version and record["candidate"].get("version") != args.version:
+        if version and record["candidate"].get("version") != version:
             continue
-        print(json.dumps({"path": str(path), **record}, indent=2, ensure_ascii=False))
-        return 0
-    print("null")
-    return 1
+        return path
+    return None
 
 
-def pending(record: dict) -> list[dict]:
-    seen = {p["name"]: p for p in record["phases"]}
-    out = []
-    for name in PHASES:
-        entry = seen.get(name)
-        if entry is None:
-            out.append({"phase": name, "status": "not-run", "checks": []})
-            continue
-        checks = [
-            c
-            for c in entry["checks"]
-            if c["status"] not in {"passed", "not-applicable"}
-        ]
-        if entry["status"] not in {"passed", "not-applicable"} or checks:
-            out.append({"phase": name, "status": entry["status"], "checks": checks})
-    return out
+def render(record: dict, path: Path) -> str:
+    c = record["candidate"]
+    lines = [f"# {record['skill']} {c.get('version')} — {record['id']}", ""]
+    lines.append(f"- record: `{path}`")
+    lines.append(f"- candidate: `{c.get('commit')}`" + (f", trigger: `{c.get('trigger')}`" if c.get("trigger") else ", trigger: not set"))
+    for name, value in c.get("digests", {}).items():
+        lines.append(f"- tested {name}: `{value}`")
+    for name, value in record["published"].get("digests", {}).items():
+        lines.append(f"- published {name}: `{value}`")
+    if record["engine"].get("python"):
+        lines.append(f"- scripts run with: `{record['engine']['python']}`")
+    if record.get("root") and profile_hash(Path(record["root"])) != record.get("profile_hash"):
+        lines.append("- **profile changed since this record started**: re-read the policies before relying on earlier decisions")
+    if record.get("legacy_schema"):
+        lines.append(f"- read from schema {record['legacy_schema']}; phases kept as history, nothing inferred")
+    lines += ["", "## Coverage", "", "| check | stage | mandatory | status | evidence | note |", "|---|---|---|---|---|---|"]
+    for check in sorted(record["checks"], key=lambda c: 0 if c.get("stage") == "pre" else 1):
+        note = []
+        if check.get("waiver"):
+            note.append(f"waived by {check['waiver'].get('by')}: {check['waiver'].get('reason')}")
+        if check.get("reused_from"):
+            note.append(f"reused from {check['reused_from'].get('at')}: {check['reused_from'].get('reason')}")
+        if check.get("invalidated_by") and check["status"] == "not-run":
+            note.append(f"invalidated: {check['invalidated_by']}")
+        if check.get("probe"):
+            note.append(f"probe: {check['probe']}")
+        if check.get("expect"):
+            note.append(f"expect: {check['expect']}")
+        lines.append(
+            f"| {check['name']} | {check.get('stage')} | {'yes' if check.get('mandatory') else 'no'} | {check['status']} | {check.get('evidence') or ''} | {'; '.join(note)} |"
+        )
+    go = outstanding(record, "pre")
+    delivery = outstanding(record)
+    approval = publication_approval(record)
+    lines += ["", "## Gates", ""]
+    lines.append("- GO: " + ("ready" if not go else "blocked by " + ", ".join(f"{i['check']} ({i['reason']})" for i in go)))
+    lines.append("- publication approval: " + (f"{approval['scope']} (by {approval.get('by')}, {approval.get('at')})" if approval else "none for this candidate"))
+    if delivery or not approval:
+        blockers = [f"{i['check']} ({i['reason']})" for i in delivery]
+        if not approval:
+            blockers.append("no valid publication approval")
+        lines.append("- delivery: outstanding " + ", ".join(blockers))
+    else:
+        lines.append("- delivery: " + record["delivery"].get("status", "pending"))
+    if record.get("verdict"):
+        lines.append(f"- verdict: {record['verdict']} at {record.get('finished_at')}")
+    if record["approvals"]:
+        lines += ["", "## Approvals", ""]
+        for a in record["approvals"]:
+            state = "revoked" if a.get("revoked") else ("valid" if approval_valid(a, record) else "no longer applicable")
+            cond = f" — conditions: {a['conditions']}" if a.get("conditions") else ""
+            lines.append(f"- {a.get('action')}: {a.get('scope')}{cond} (by {a.get('by')}, {a.get('at')}, {state})")
+    if record["notes"]:
+        lines += ["", "## Notes", ""]
+        for n in record["notes"]:
+            lines.append(f"- {n.get('at') or ''} {n.get('text')}".strip())
+    if record["superseded"]:
+        lines += ["", "## Superseded candidates", ""]
+        for s in record["superseded"]:
+            lines.append(f"- {s['at']}: {s['reason']} (was `{s['candidate'].get('commit')}` {s['candidate'].get('version')})")
+    return "\n".join(lines) + "\n"
 
 
-def cmd_pending(args) -> int:
-    record = load(Path(args.record))
-    print(json.dumps(pending(record), indent=2, ensure_ascii=False))
+def cmd_show(args) -> int:
+    if args.record:
+        path = Path(args.record)
+    else:
+        if not args.root:
+            raise ValueError("show needs a record path or --root")
+        found = latest(Path(args.root).resolve(), args.skill, args.version)
+        if not found:
+            print("null")
+            return 1
+        path = found
+    record = load(path)
+    if args.json:
+        print(json.dumps({"path": str(path), "outstanding": outstanding(record), "go_outstanding": outstanding(record, "pre"), **record}, indent=2, ensure_ascii=False))
+    else:
+        print(render(record, path), end="")
     return 0
 
 
@@ -623,62 +641,26 @@ def cmd_finish(args) -> int:
     if args.verdict not in VERDICTS:
         raise ValueError(f"invalid verdict {args.verdict}")
     if args.verdict == "GO":
-        required = record["delivery"]["required_phases"]
-        if not required:
-            raise ValueError(
-                "completion requires an explicit delivery contract (--required-phase on new)"
-            )
-        phases = {p["name"]: p for p in record["phases"]}
-        missing = []
-        for name in required:
-            p = phases.get(name, {})
-            allowed = (
-                {"passed", "not-applicable"}
-                if name in {"announce", "cleanup"}
-                else {"passed"}
-            )
-            if (
-                p.get("status") not in allowed
-                or not p.get("checks")
-                or any(
-                    c["status"] not in allowed or not c.get("evidence")
-                    for c in p.get("checks", [])
-                )
-            ):
-                missing.append(name)
-        for name in record["delivery"]["required_checks"]:
-            if not any(
-                c["name"] == name and c["status"] == "passed" and c.get("evidence")
-                for p in phases.values()
-                for c in p["checks"]
-            ):
-                missing.append(name)
-        if missing:
-            raise ValueError("delivery incomplete: " + ", ".join(missing))
+        blockers = [f"{i['check']} ({i['reason']})" for i in outstanding(record)]
+        if not publication_approval(record):
+            blockers.append("no valid publication approval for this candidate")
+        if blockers:
+            raise ValueError("delivery incomplete: " + "; ".join(blockers))
         record["delivery"]["status"] = "completed"
     else:
-        record["delivery"]["status"] = (
-            "aborted" if args.verdict == "aborted" else "blocked"
-        )
+        record["delivery"]["status"] = "aborted" if args.verdict == "aborted" else "blocked"
     record["verdict"] = args.verdict
     record["finished_at"] = now()
     if args.note:
-        record["notes"].append(args.note)
-    event(
-        record,
-        "run-finished",
-        verdict=args.verdict,
-        delivery=record["delivery"]["status"],
-    )
+        record["notes"].append({"at": now(), "text": args.note})
+    event(record, "run-finished", verdict=args.verdict, delivery=record["delivery"]["status"])
     save(path, record)
     print(f"{record['id']}: {args.verdict}")
     return 0
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
     new = sub.add_parser("new")
@@ -686,98 +668,52 @@ def main(argv: list[str]) -> int:
     new.add_argument("--skill", default="release")
     new.add_argument("--version", required=True)
     new.add_argument("--commit")
+    new.add_argument("--trigger")
     new.add_argument("--repo")
     new.add_argument("--engine-version")
-    new.add_argument("--resolution")
-    new.add_argument("--required-phase", action="append", choices=PHASES)
-    new.add_argument("--required-check", action="append")
+    new.add_argument("--python")
+    new.add_argument("--mandatory", action="append", help="NAME or NAME:pre|post")
+    new.add_argument("--optional", action="append", help="NAME or NAME:pre|post")
     new.set_defaults(func=cmd_new)
 
-    update = sub.add_parser("update")
-    update.add_argument("record")
-    update.add_argument("--phase", required=True, choices=PHASES)
-    update.add_argument("--status", choices=sorted(STATUSES))
-    update.add_argument("--check", action="append")
-    update.add_argument("--command", action="append")
-    update.add_argument("--executed-at")
-    update.add_argument("--cwd", default=".")
-    update.add_argument("--log")
-    update.add_argument(
-        "--depends-on", action="append", help="source, candidate or artifact:NAME"
-    )
-    update.add_argument(
-        "--digest", action="append", help="atomic artifact identity and gate result"
-    )
-    update.set_defaults(func=cmd_update)
+    setp = sub.add_parser("set")
+    setp.add_argument("record")
+    setp.add_argument("--commit")
+    setp.add_argument("--version")
+    setp.add_argument("--trigger")
+    setp.add_argument("--digest", action="append", help="NAME=DIGEST of the tested artifact")
+    setp.add_argument("--published", action="append", help="NAME=DIGEST observed in the registry")
+    setp.add_argument("--check", action="append", help="NAME=STATUS[:EVIDENCE]")
+    setp.add_argument("--on", help="source (default) or artifact:NAME")
+    setp.add_argument("--mandatory", action="store_true")
+    setp.add_argument("--optional", action="store_true")
+    setp.add_argument("--stage", help="pre (feeds GO) or post (delivery)")
+    setp.add_argument("--probe")
+    setp.add_argument("--expect")
+    setp.add_argument("--reuse-from", help="id of an earlier passed check whose result still applies")
+    setp.add_argument("--waive", help="check name to waive by a recorded decision")
+    setp.add_argument("--reason")
+    setp.add_argument("--approve", help="action approved: publication, merge, tests, notes, ...")
+    setp.add_argument("--scope")
+    setp.add_argument("--conditions")
+    setp.add_argument("--by", default="owner")
+    setp.add_argument("--note", action="append")
+    setp.add_argument("--python")
+    setp.set_defaults(func=cmd_set)
 
-    authorize = sub.add_parser("authorize")
-    authorize.add_argument("record")
-    authorize.add_argument("--scope", required=True)
-    authorize.add_argument("--candidate")
-    authorize.add_argument(
-        "--kind",
-        choices=["publication", "merge", "tests", "notes"],
-        default="publication",
-    )
-    authorize.add_argument("--conditions")
-    authorize.add_argument("--resource", action="append")
-    authorize.add_argument("--limit", type=int)
-    authorize.add_argument("--subject")
-    authorize.add_argument("--expires-at")
-    authorize.add_argument("--phase", default=GO_PHASE, choices=PHASES)
-    authorize.add_argument("--by", default="owner")
-    authorize.set_defaults(func=cmd_authorize)
-
-    candidate = sub.add_parser("candidate")
-    candidate.add_argument("record")
-    candidate.add_argument("--commit", required=True)
-    candidate.add_argument("--version")
-    candidate.set_defaults(func=cmd_candidate)
-
-    digest = sub.add_parser("digest")
-    digest.add_argument("record")
-    digest.add_argument("--name", required=True)
-    digest.add_argument("--value", required=True)
-    digest.add_argument(
-        "--published",
-        action="store_true",
-        help="record an observed distributed digest without changing the candidate",
-    )
-    digest.set_defaults(func=cmd_digest)
-
-    latest = sub.add_parser("latest")
-    latest.add_argument("--root", required=True)
-    latest.add_argument("--skill", default="release")
-    latest.add_argument("--version")
-    latest.set_defaults(func=cmd_latest)
-
-    pend = sub.add_parser("pending")
-    pend.add_argument("record")
-    pend.set_defaults(func=cmd_pending)
+    show = sub.add_parser("show")
+    show.add_argument("record", nargs="?")
+    show.add_argument("--root")
+    show.add_argument("--skill", default="release")
+    show.add_argument("--version")
+    show.add_argument("--json", action="store_true")
+    show.set_defaults(func=cmd_show)
 
     finish = sub.add_parser("finish")
     finish.add_argument("record")
     finish.add_argument("--verdict", required=True)
     finish.add_argument("--note")
     finish.set_defaults(func=cmd_finish)
-
-    reuse = sub.add_parser("revalidate")
-    reuse.add_argument("record")
-    reuse.add_argument("--phase", required=True, choices=PHASES)
-    reuse.add_argument("--evidence-id", required=True)
-    reuse.add_argument("--reason", required=True)
-    reuse.set_defaults(func=cmd_revalidate)
-
-    permissions = sub.add_parser("permissions")
-    permissions.add_argument("record")
-    permissions.set_defaults(func=cmd_permissions)
-
-    consume = sub.add_parser("consume")
-    consume.add_argument("record")
-    consume.add_argument("--authorization", required=True)
-    consume.add_argument("--units", type=int, default=1)
-    consume.add_argument("--reason", required=True)
-    consume.set_defaults(func=cmd_consume)
 
     args = parser.parse_args(argv)
     try:

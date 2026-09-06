@@ -5,7 +5,7 @@ install, sometimes straight from the index with a zero-install runner. A wheel t
 can still ship a broken CLI or a missing template; the packaging gate is the highest-value
 gate of this archetype, not a formality, and the publish workflow usually runs no tests.
 
-## Version decision (phase 1)
+## Version decision (step 1)
 
 `[release].consumer_surfaces` names what a breaking change can break: public exports and
 signatures, response types, CLI flags and subcommands, MCP tool names and parameters,
@@ -13,7 +13,7 @@ configuration keys and environment variables, supported providers or engines. Re
 renaming any of them is major; adding is minor; a back-compatible deprecation with a warning
 is minor, not major; fixes and packaging are patch.
 
-## Bucket A specifics (phase 3)
+## Automated checks (step 2)
 
 - The default suite must not reach the network: real-API tests live behind a marker that the
   default configuration excludes. Grep the diff of new providers or processors for unmocked
@@ -21,7 +21,7 @@ is minor, not major; fixes and packaging are patch.
 - `[release.gates].not_gates` lists signals that never block (a lint or type check the project
   does not gate on). Never "fix" pre-existing findings as a side effect of the release.
 
-## Packaging gate (phase 4, repeated in phase 7)
+## Packaging gate (step 2, repeated in step 3)
 
 `[artifacts.pypi].gate` proves that the artifact that will ship works for every declared
 surface, from a clean environment, with no repository on the path:
@@ -70,10 +70,10 @@ checkout. Apply the same isolation to CLI/MCP probes and runtime assets; editabl
 or source-only templates do not count as artifact evidence.
 
 Identity: sha256 of the wheel and sdist. When the publish workflow rebuilds the package
-before uploading, the published files differ from the tested ones; phase 11 verifies the
+before uploading, the published files differ from the tested ones; step 6 verifies the
 published ones and the run record says the local gate ran on another build.
 
-## Bucket C (phase 5)
+## Owner's manual checks (step 2)
 
 Real-API suites cost money and need credentials in a local environment file; they are a
 maintainer ritual, never CI. Scope by the diff: every provider or engine whose code changed,
@@ -86,7 +86,7 @@ content that changed upstream; fix in its own test-only PR), an **environment** 
 changed code's own test fails; blocks). Then run `git status`: media and network suites write
 intermediates next to fixtures.
 
-## Cut and publish (phases 7 and 10)
+## Cut and publish (steps 3 and 5)
 
 - Bump every version file together, including manifests that must equal the package version;
   commit the lock file with the bump (`[release].lock_command`).
@@ -100,7 +100,7 @@ intermediates next to fixtures.
 - A published version is immutable. A bad publish burns the number: bump, re-cut, publish
   again. Never push a version-looking tag "just to test".
 
-## Post-publish verification (phase 11)
+## Post-publish verification (step 6)
 
 ```bash
 (
@@ -115,7 +115,7 @@ Repeat the surface smokes against the index install, not the local build. Propag
 a minute; retry briefly. Confirm the release page shows the tag and the approved notes and is
 marked latest.
 
-## Notes (phase 8)
+## Notes (step 3)
 
 Group by consumer surface (library, CLI, MCP) when the project has several: a reader usually
 cares about one. Include the install line and, when the project supports it, the zero-install

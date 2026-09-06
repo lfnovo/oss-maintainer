@@ -1,4 +1,4 @@
-# Test matrix template — change → risk → bucket
+# Coverage table — change → risk → check
 
 Instantiate against the real release diff, starting from the repository's own matrix in
 `.maintainer/release/test-matrix.md`. The unit of planning is the **risk**, not the feature:
@@ -11,32 +11,50 @@ A change to shared machinery (a base class, routing, configuration loading, a bu
 widens the sweep: one baseline check per consumer of that machinery, not only the feature that
 motivated the change.
 
-## Executable plan
+## The table
 
-Before execution, produce a compact table using commands/selectors discovered in the repository.
-Do not invent flags or infer that every provider test is required. Preserve mandatory project
-gates and the canonical validator independently of the additional risk-selected probes.
+One table, produced in step 1 with commands and selectors discovered in the repository, shown
+with the one proposal, updated as results land and shown again at the GO. Its rows are the
+checks in the run record.
 
-| Change / shared component | Risk and coverage | Exact command or manual steps | Expected result / evidence | Resources (no secret values) | Executor / paid scope and limit | Before or after publication | Gate / unavailable disposition |
+| Check | Change / risk | Real probe | Observable success | Prerequisites | Who / paid scope | Stage | Mandatory |
 |---|---|---|---|---|---|---|---|
-| Affected surface | Who can be affected and why this check is sufficient | Existing target plus verified selector, or concrete steps | Observable pass/fail and evidence location | Environment, service and credential names only | Agent or owner; budget/count when applicable | Pre-GO or post-publish | Mandatory, optional; blocked or explicitly unverified |
+| Name used in the record | Who can be affected and why this check is sufficient | Existing target plus verified selector, or concrete manual steps | What proves it worked, and where the evidence lands | Credentials, browsers, services (names only, never values) | Agent or owner; budget when applicable | pre-GO or post-publish | yes / no |
 
-Select a narrow supported command for localized changes. Shared code widens coverage only
-with a stated dependency rationale. If selectors do not exist, explain the smallest available
-suite and its cost; propose a supported alternative instead of silently running a broad paid
-suite. Present the actual paid/manual scope for approval once, unless a valid grant already
-covers it. Repeats consume the authorized allowance; an exhausted budget is a new decision.
-Unavailable mandatory checks block the relevant gate; optional gaps remain visible.
+Rules for filling it:
 
-## Bucket A — selected automated checks
+- **Observable success, not a passing exit code.** A suite that tolerates a provider error
+  does not prove a summary was generated. An extra that installs does not prove inference
+  runs. A server that answers `initialize` does not prove a tool executed. Name the artifact
+  or output that proves the path ran.
+- **Not a CI gate does not mean not relevant.** The project may exclude its live suites from
+  the default validator; a release that changed a provider still exercises that provider,
+  with real credentials, at least once.
+- Select the narrowest supported command for localized changes; widen for shared code with a
+  stated dependency rationale. Do not invent flags or assume every provider test is required.
+  If selectors do not exist, explain the smallest available suite and its cost.
+- A path with no credentials, no device or no budget is a row marked `not-run`, reported as
+  unverified this release. It is never implied as covered.
+- Post-publication rows (install from the index, pull from the registry, release page) are
+  required to finish the release and can never be prerequisites to the GO.
+
+## Preflight
+
+Before running the table, confirm what it needs: runtimes and browsers installed, credentials
+present, services reachable. Presence is not capability: when an account can be out of
+credits or quota, run one small authorized probe. Resolve or record what is missing now, so
+the GO is not where it surfaces.
+
+## Sources of checks
 
 | Check | Source |
 |---|---|
 | The canonical validator, mandatory project checks and selected additional commands | profile |
-| The archetype gate | archetype reference |
+| The archetype gate, built from the candidate commit | archetype reference |
 | The smoke journey, when the repository has one | `smoke-e2e` skill |
 | Dependency audit | security alerts, `npm audit`, `pip-audit` or the project's equivalent |
 | Targeted probes for this release's risks | below, plus the repository's probe library |
+| The owner's manual checks with real credentials | this release's diff and the credentials the owner has |
 
 Checklist design rule: before writing an error-path item ("X unconfigured should show an
 error"), verify in the code that it *is* an error; defaults and fallbacks often make it a
@@ -55,21 +73,10 @@ Adapt the endpoints and values to the repository; the classes recur:
 - Self-hosted legitimacy: local and private addresses keep working where the product promises
   them, while link-local and metadata addresses are rejected.
 - Anything an LLM or a UI writes through: verify the full path end to end, in a real client,
-  not only at the API (a field dropped on one side and ignored on the other is only visible
-  end to end).
+  not only at the API.
 - Deprecations: confirm the deprecated path still *works*, not only that the warning fires.
 
-## Bucket B — automatable with investment
-
-Standing candidates: end-to-end scenarios for this release's features, CI-ification of any
-probe that proved valuable twice, anything the owner keeps verifying by hand.
-
-Decision rule, applied with the owner per item: build it now when it compounds for future
-releases and costs less than the manual verification it replaces; otherwise verify manually
-this once and note it in the repository's matrix for next time. Bucket B never feeds a gate
-directly: what gets built joins A, what does not joins C.
-
-## Bucket C — pre-publication manual checks, started early
+### Owner's manual checks
 
 - Real credentials: connection tests for the providers whose code changed, one baseline per
   modality that did not.
@@ -77,16 +84,13 @@ directly: what gets built joins A, what does not joins C.
 - A visual or usability tour of every user-facing change.
 - The prepared candidate on a fresh local environment or separately approved RC stack.
 
-Deliver this as a concrete checklist with expected outcomes, tailored to what the release
-touched and to the credentials the owner actually has. A provider or path with no
-credentials is recorded as **unverified this release**, never implied as covered. Start it
-in parallel with bucket A so the owner is never the bottleneck at the end.
+Hand these over early, with expected outcomes, tailored to what the release touched and to
+the credentials the owner actually has, so the owner is never the bottleneck at the end.
 
-## Post-publication verification — phase 11
+## Automation worth building
 
-- Install/pull the distributed artifact in a fresh environment and repeat its surface smokes.
-- Verify registry identity and the release page against the approved candidate and notes.
-
-These checks start `not-run` until publication. Report them separately; they are required to
-finish the release, but cannot be prerequisites to the publication they verify. Do not mark
-them passed or waive them just to obtain the pre-publication GO.
+Standing candidates: end-to-end scenarios for this release's features, CI-ification of any
+probe that proved valuable twice, anything the owner keeps verifying by hand. Decide with the
+owner in the step 1 proposal: build it now when it compounds for future releases and costs
+less than the manual verification it replaces; otherwise verify manually this once and note
+it in the repository's matrix for next time.
