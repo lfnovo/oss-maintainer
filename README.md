@@ -88,11 +88,13 @@ distribution_trigger = "make tag"      # creates and pushes the tag; publish.yml
 [artifacts.pypi]
 package = "example-lib"
 gate = '''
-rm -rf dist && uv build &&
-wheel="$(python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
+repo="$(git rev-parse --show-toplevel)" && src="$(mktemp -d)" && check_dir="$(mktemp -d)" &&
+git -C "$repo" status --porcelain | sed 's/^/excluded from the build (not in HEAD): /' &&
+git -C "$repo" worktree add --detach --quiet "$src" HEAD &&
 (
-  check_dir="$(mktemp -d)" &&
-  trap 'rm -rf "$check_dir"' EXIT &&
+  trap 'git -C "$repo" worktree remove --force "$src"; rm -rf "$check_dir"' EXIT &&
+  cd "$src" && uv build && rm -rf "$repo/dist" && cp -R dist "$repo/dist" &&
+  wheel="$(cd "$repo" && python3 -I -c 'from pathlib import Path; wheels = list(Path("dist").glob("*.whl")); assert len(wheels) == 1, "expected one wheel"; print(wheels[0].resolve())')" &&
   cd "$check_dir" &&
   uv run --isolated --no-project --with "$wheel" python -I -c 'import example_lib; print(example_lib.__file__)'
 )

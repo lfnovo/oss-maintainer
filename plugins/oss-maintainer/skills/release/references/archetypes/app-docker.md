@@ -18,6 +18,11 @@ Add container-level probes that unit tests cannot cover: process supervision, en
 variables reaching in-image workers, proxies and `NO_PROXY`, opt-in runtimes gated off by
 default. The repository's runbook holds the exact commands.
 
+Build the candidate image from a clean worktree of the candidate commit
+(`git worktree add --detach <dir> HEAD`), or confirm that `git status` is clean before
+building from the checkout: the Docker build context is the working tree, and an untracked
+file that `.dockerignore` does not exclude ends up in the image.
+
 Identity: the manifest digest per registry and variant. Record the digests of the locally
 built candidate; the CI build that publishes may differ, so phase 11 verifies the published
 manifests.
