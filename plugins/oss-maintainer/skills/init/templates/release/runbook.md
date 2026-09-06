@@ -1,44 +1,36 @@
 # Release runbook
 
-Exact commands for this repository, by phase. The plugin's `release` skill supplies the
-phases and the gates; this file supplies what to type.
+The sequence and the policy of a release of this repository, in one place. The plugin's
+`release` skill supplies the steps and the gates; `profile.toml` holds the executable
+references (`[commands.validator]`, `[artifacts.*].gate`, `[release].distribution_trigger`);
+this file holds what those fields cannot express: order, environment, manual steps, and the
+reasons behind them. Other documents link here instead of repeating it.
 
-## Bucket A
+## Validate
 
-```bash
-# TODO canonical validator, mandatory checks and selected risk probes
-```
+- Canonical validator and mandatory checks: `[commands.validator]` and `[release.gates].mandatory`.
+- Artifact gate: `[artifacts.*].gate`, built from the candidate commit.
+- Environment or credentials the checks need (names only, never values):
+  - TODO
 
-## Artifact gate
+## Owner's manual checks
 
-```bash
-# TODO fresh + upgrade image gate, or build + clean-room install
-```
+- TODO what the owner verifies by hand with real credentials, and what proves it worked
 
 ## Cut
 
-```bash
-# TODO bump version files, date the changelog, lock, agreed PR or direct-commit process
-```
+- TODO anything beyond bumping `[release].version_files`, dating the changelog and running
+  `[release].lock_command`: a review requirement, a branch, a release PR template
 
-## Publish (only after the GO)
+## Publish, only after the GO
 
-```bash
-# TODO the distribution trigger
-```
+- Trigger: `[release].distribution_trigger`; workflow: `[release].publish_workflow`.
+- TODO what to watch and what "done" looks like on the platform
 
-## Post-publish verification
+## Verify from the registry
 
-```bash
-# TODO verify from the registry, never from the local build
-```
+- TODO the install or pull that proves users receive the published artifact
 
 ## Cleanup
-
-```bash
-# TODO
-```
-
-## Known gotchas
 
 - TODO

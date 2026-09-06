@@ -23,7 +23,7 @@ publish_workflow = ".github/workflows/build-and-release.yml"
 latest_promotion = "publication promotes latest"
 
 [release.gates]
-mandatory = ["validator", "image-gate", "bucket-c", "notes-approved"]
+mandatory = ["validator", "image-gate", "owner-checks", "notes-approved"]
 optional = ["security-alerts"]
 merge_own_prs = "ask-once-per-session"
 

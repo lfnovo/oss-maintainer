@@ -73,7 +73,8 @@ LADDER_STATES = {
 BUILTIN_GATES = {
     "image-gate",
     "package-gate",
-    "bucket-c",
+    "owner-checks",
+    "bucket-c",  # legacy name of owner-checks, still accepted
     "notes-approved",
     "security-alerts",
 }

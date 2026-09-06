@@ -14,7 +14,7 @@ version_files = ["pyproject.toml"]
 distribution_trigger = "TODO"
 
 [release.gates]
-mandatory = ["validator", "package-gate", "bucket-c", "notes-approved"]
+mandatory = ["validator", "package-gate", "owner-checks", "notes-approved"]
 
 [artifacts.pypi]
 package = "example-lib"

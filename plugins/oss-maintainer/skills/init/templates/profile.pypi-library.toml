@@ -26,7 +26,7 @@ publish_workflow = "TODO .github/workflows/publish.yml"
 consumer_surfaces = ["public exports"]      # what a breaking change can break: add cli flags, mcp tools, config keys
 
 [release.gates]
-mandatory = ["validator", "package-gate", "bucket-c", "notes-approved"]
+mandatory = ["validator", "package-gate", "owner-checks", "notes-approved"]   # what each means: release/runbook.md
 optional = ["security-alerts"]
 not_gates = []                              # checks that produce signal but never block, e.g. ["mypy"]
 merge_own_prs = "ask-once-per-session"
