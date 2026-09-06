@@ -1,0 +1,37 @@
+VISION.md
+  s_faee0f1d49c94e::t_348b71f0cb9e5d 91
+plugins/oss-maintainer/skills/release/references/archetypes/app-docker.md
+  s_faee0f1d49c94e::t_79f4087700bb76 21-25
+plugins/oss-maintainer/skills/release/SKILL.md
+  s_faee0f1d49c94e::t_958af805abe124 35-38
+README.md
+  s_faee0f1d49c94e::t_1c058661899f76 91-93,95-97
+PRINCIPLES.md
+  s_faee0f1d49c94e::t_38768d96474b41 23
+  s_faee0f1d49c94e::t_87bbd12cfe88af 27
+plugins/oss-maintainer/evals/fixtures/pypi-library/.maintainer/profile.toml
+  s_faee0f1d49c94e::t_1c058661899f76 22-24,26-28
+plugins/oss-maintainer/skills/release/references/archetypes/pypi-library.md
+  s_faee0f1d49c94e::t_1c058661899f76 52-54,56-58
+  s_faee0f1d49c94e::t_baa2a42ac74e60 29-38
+  s_faee0f1d49c94e::t_aaa59a88199d17 64-66
+tests/test_pypi_gate.py
+  s_faee0f1d49c94e::t_2995f7a0f114ae 82-86
+  s_faee0f1d49c94e::t_ea7dc98f2400f0 21-30,38-40,59-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2df9934e1b08b891ef2d86e203f7453d0b7fe24f",
+  "prompts": {},
+  "sessions": {
+    "s_faee0f1d49c94e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69ad6050-96d5-4a41-ae6b-66709fc7be9b",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
