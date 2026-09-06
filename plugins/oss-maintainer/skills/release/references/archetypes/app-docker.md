@@ -3,7 +3,7 @@
 The deliverable is an image users pull and run. A green suite on the default branch is not a
 working image: the gate tests the artifact, not the repository.
 
-## Artifact gate (phase 4, repeated in phase 7)
+## Artifact gate (step 2, repeated in step 3)
 
 `[artifacts.docker].gate` runs the two scenarios that matter to users, against real
 containers:
@@ -24,7 +24,7 @@ building from the checkout: the Docker build context is the working tree, and an
 file that `.dockerignore` does not exclude ends up in the image.
 
 Identity: the manifest digest per registry and variant. Record the digests of the locally
-built candidate; the CI build that publishes may differ, so phase 11 verifies the published
+built candidate; the CI build that publishes may differ, so step 6 verifies the published
 manifests.
 
 ## Registries, variants, platforms
@@ -43,14 +43,14 @@ Every reference must list every platform in the profile.
 
 Pushing `image:<version>` to a public registry distributes that version even when `latest`
 does not move. Both the version push and rolling promotion require the final candidate's GO
-and run in phase 10. Ordinary build or merge approval covers neither action.
+and run in step 5. Ordinary build or merge approval covers neither action.
 
 Before any publication, fixes produce a new candidate and invalidate the affected evidence
 and approval. After a final version is distributed, preserve its tag and image identity:
 a correction gets a new version, a new cut and a new GO. Do not move the published tag or
 push replacement images under that version.
 
-## Release candidate for the owner (pre-publication bucket C)
+## Release candidate for the owner's manual checks
 
 By default, start a browsable stack from the exact locally tested candidate image, pinned by
 image ID/digest. When remote testers need an image, propose **separate RC staging**: an
@@ -71,7 +71,7 @@ Findings go back to the fix loop; they do not justify an early final-version pus
 `[artifacts.docker].dev_tag` is the rolling development image rebuilt on every merge. When a
 Discussion or issue is closed because its fix merged, point testers at that tag.
 
-## Post-publish verification (phase 11)
+## Post-publish verification (step 6)
 
 Manifest check for every version reference and for the rolling tag after promotion; the
 release page shows the tag and the approved notes; a fresh pull of the rolling tag boots and

@@ -9,7 +9,7 @@
     "skills": "plugins/oss-maintainer/skills",
     "index": ".agent-smith/index.json"
   },
-  "lastUpdated": "2026-09-06T02:13:30Z",
+  "lastUpdated": "2026-09-06T18:38:16Z",
   "components": [
     {
       "id": "skill:init",
@@ -89,7 +89,7 @@
       "name": "release",
       "plugin": "oss-maintainer",
       "canonicalPath": "plugins/oss-maintainer/skills/release/SKILL.md",
-      "description": "Orchestrate a release of the current repository behind human gates, from changelog audit and version decision through a risk-based test matrix, the artifact gate, the fix loop, notes and credits, an explicit GO before the first action that can start distribution, verification from the registry, announcements, cleanup and retro. Use when preparing, testing, cutting or publishing a release."
+      "description": "Orchestrate a release of the current repository behind human gates, from changelog audit and version decision through a coverage table, validation on the real artifact, the cut, notes and credits, an explicit GO before the first action that can start distribution, verification from the registry and closure. Use when preparing, testing, cutting or publishing a release."
     },
     {
       "id": "policy:release:user-invoked",
